@@ -1,55 +1,31 @@
-tauri-app := "tauri-app"
+mod core
+mod dioxus 'dioxus-app'
 
-# Run clippy for linting
+[private]
+default:
+  @just --list
+
+# Run formatter on workspace
+fmt:
+  cargo fmt --all
+
+# Run formatter check
+fmt-check:
+  cargo fmt --all --check
+
+# Run clippy on workspace
 lint:
-    cargo clippy --workspace -- -D warnings
+  cargo clippy --workspace -- -D warnings
 
-# Run formatter
-format:
-    cargo fmt --all
-
-# Run formatter check (CI用)
-format-check:
-    cargo fmt --all --check
-
-# Run tests
+# Run tests on workspace
 test:
-    cargo test --workspace
+  cargo test --workspace
 
-# Run all checks (lint + format-check + test)
-check: lint format-check test
+# Run all checks (lint + fmt-check + test)
+check: lint fmt-check test
 
-# Install frontend dependencies
-fe-install:
-    cd {{tauri-app}} && pnpm install
-
-# Build frontend
-fe-build:
-    cd {{tauri-app}} && pnpm build
-
-# Run tauri desktop dev
-dev:
-    cd {{tauri-app}} && pnpm tauri dev
-
-# Run tauri android init
-android-init:
-    cd {{tauri-app}} && pnpm tauri android init
-
-# Run tauri android dev (実機 or エミュレータ)
-android-dev:
-    cd {{tauri-app}} && pnpm tauri android dev
-
-# Run tauri android build (release APK)
-android-build:
-    cd {{tauri-app}} && pnpm tauri android build
+# Full verify
+verify: fmt check
 
 # Run Dioxus desktop dev
-dx-dev:
-    cd dioxus-app && dx serve --platform desktop
-
-# Build Dioxus desktop (release)
-dx-build:
-    cd dioxus-app && dx build --platform desktop --release
-
-# Full verify: rust checks + frontend build
-verify: check fe-build
+dev: dioxus::dev
