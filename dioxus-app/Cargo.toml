@@ -8,6 +8,7 @@ magical-merchant-core = { path = "../core" }
 dioxus = { version = "0.7", features = ["desktop", "router"] }
 dirs = "6"
 chrono = "0.4"
+tokio = { version = "1", features = ["rt"] }
 
 [lints]
 workspace = true

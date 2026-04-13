@@ -92,6 +92,46 @@ html, body {
   height: 100%;
 }
 
+/* === Timeline === */
+.timeline-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-3);
+}
+
+.timeline-input {
+  flex-shrink: 0;
+}
+
+.memo-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-2);
+  line-height: var(--font-lineheight-3);
+  background: transparent;
+  color: var(--text-1);
+}
+
+.timeline-entries {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-1);
+  flex: 1;
+  overflow-y: auto;
+}
+
+.timeline-entry {
+  padding: var(--size-2) var(--size-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-2);
+  font-size: var(--font-size-1);
+  color: var(--text-2);
+  word-break: break-word;
+}
+
 /* === Icons === */
 .icon {
   display: inline-block;
