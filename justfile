@@ -43,5 +43,13 @@ android-dev:
 android-build:
     cd {{tauri-app}} && pnpm tauri android build
 
+# Run Dioxus desktop dev
+dx-dev:
+    cd dioxus-app && dx serve --platform desktop
+
+# Build Dioxus desktop (release)
+dx-build:
+    cd dioxus-app && dx build --platform desktop --release
+
 # Full verify: rust checks + frontend build
 verify: check fe-build
