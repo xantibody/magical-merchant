@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
-members = ["core", "mcp-cli", "tauri-app/src-tauri", "dioxus-app"]
+members = ["core", "mcp-cli", "dioxus-app"]
+exclude = ["tauri-app/src-tauri"]
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "warn"
