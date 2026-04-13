@@ -11,5 +11,13 @@ chrono = "0.4"
 tokio = { version = "1", features = ["rt"] }
 pulldown-cmark = "0.12"
 
-[lints]
-workspace = true
+[lints.rust]
+unsafe_op_in_unsafe_fn = "warn"
+invalid_reference_casting = "deny"
+
+[lints.clippy]
+mod_module_files = "warn"
+excessive_precision = "warn"
+# impl_trait_in_params disabled: conflicts with Dioxus Props derive macro
+float_cmp = "warn"
+redundant_field_names = "warn"

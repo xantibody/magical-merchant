@@ -4,6 +4,7 @@ use std::time::Duration;
 use dioxus::prelude::*;
 use magical_merchant_core::{create_draft_note, update_note, DeviceContext};
 
+use crate::components::markdown_editor::MarkdownEditor;
 use crate::data_dir;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -101,11 +102,10 @@ pub fn Notes() -> Element {
     rsx! {
         div { class: "view notes-view",
             div { class: "notes-editor",
-                textarea {
-                    class: "memo-input notes-body",
+                MarkdownEditor {
+                    value: body(),
                     placeholder: "Write your note in Markdown...",
-                    value: "{body}",
-                    oninput: move |e| body.set(e.value()),
+                    oninput: move |v| body.set(v),
                 }
             }
 
