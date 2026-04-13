@@ -15,7 +15,7 @@ test:
 verify: fmt check test
 
 dev:
-  dx serve --platform desktop
+  RUST_LOG=debug dx serve --platform desktop
 
 build:
   dx build --platform desktop --release

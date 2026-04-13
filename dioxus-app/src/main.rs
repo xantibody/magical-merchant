@@ -20,8 +20,10 @@ enum Route {
 }
 
 fn main() {
+    dioxus::logger::init(dioxus::logger::tracing::Level::DEBUG).expect("failed to init logger");
     let base = data_dir::base_dir();
     std::fs::create_dir_all(&base).expect("could not create data directory");
+    dioxus::logger::tracing::info!("data dir: {}", base.display());
     dioxus::launch(App);
 }
 
