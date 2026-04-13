@@ -75,6 +75,7 @@
             nodejs_22
             pnpm
             cargo-tauri
+            dioxus-cli
             jdk17
             androidSdk
           ];
