@@ -3,6 +3,7 @@ use magical_merchant_core::{
     complete_task, create_task, list_active_tasks, list_projects, ProjectSummary, TaskSummary,
 };
 
+use crate::components::icon::{Icon, IconKind};
 use crate::data_dir;
 
 #[component]
@@ -135,7 +136,7 @@ pub fn Tasks() -> Element {
                                         let filename = task.filename.clone();
                                         move |_| handle_complete(filename.clone())
                                     },
-                                    "○"
+                                    Icon { kind: IconKind::Circle, size: 18 }
                                 }
                                 span { class: "task-title", "{task.title}" }
                             }

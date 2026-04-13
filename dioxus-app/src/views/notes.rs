@@ -5,6 +5,7 @@ use dioxus::prelude::*;
 use magical_merchant_core::{create_draft_note, update_note, DeviceContext};
 
 use crate::components::action_bar::ActionBar;
+use crate::components::icon::{Icon, IconKind};
 use crate::components::markdown_editor::MarkdownEditor;
 use crate::data_dir;
 
@@ -123,7 +124,7 @@ pub fn Notes() -> Element {
                     class: "action-btn",
                     disabled: draft_path().is_none(),
                     onclick: handle_done,
-                    "Done"
+                    Icon { kind: IconKind::CheckCircle, size: 16 }
                 }
             }
         }

@@ -2,6 +2,7 @@ use dioxus::prelude::*;
 use magical_merchant_core::{read_timeline, save_timeline_entry, DeviceContext};
 
 use crate::components::action_bar::ActionBar;
+use crate::components::icon::{Icon, IconKind};
 use crate::data_dir;
 
 #[component]
@@ -72,7 +73,7 @@ pub fn Timeline() -> Element {
                     class: "action-btn",
                     disabled: text().trim().is_empty() || saving(),
                     onclick: move |_| handle_send(),
-                    "Send"
+                    Icon { kind: IconKind::PaperPlaneTilt, size: 16 }
                 }
             }
 
