@@ -1,0 +1,6 @@
+[application]
+name = "magical-merchant"
+asset_dir = "assets"
+
+[bundle]
+identifier = "com.magical-merchant.app"

@@ -1,0 +1,13 @@
+[package]
+name = "magical-merchant-dioxus"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+magical-merchant-core = { path = "../core" }
+dioxus = { version = "0.7", features = ["desktop", "router"] }
+dirs = "6"
+chrono = "0.4"
+
+[lints]
+workspace = true
