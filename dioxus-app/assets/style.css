@@ -370,6 +370,41 @@ html, body {
   vertical-align: middle;
 }
 
+/* === Dark Mode === */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+
+  .toggle-btn:hover {
+    background: var(--surface-3);
+  }
+
+  .timeline-entry {
+    background: var(--surface-3);
+  }
+
+  .task-item {
+    background: var(--surface-3);
+  }
+
+  .markdown-preview {
+    background: var(--surface-3);
+  }
+
+  .markdown-preview code {
+    background: var(--surface-4);
+  }
+
+  .markdown-preview pre {
+    background: var(--surface-4);
+  }
+
+  .markdown-preview th {
+    background: var(--surface-4);
+  }
+}
+
 /* === Links reset === */
 a {
   color: inherit;
