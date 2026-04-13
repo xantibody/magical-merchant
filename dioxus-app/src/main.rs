@@ -1,6 +1,8 @@
+mod components;
 mod data_dir;
 mod views;
 
+use components::icon::{Icon, IconKind};
 use dioxus::prelude::*;
 use views::{notes::Notes, tasks::Tasks, timeline::Timeline};
 
@@ -42,11 +44,11 @@ enum Mode {
 }
 
 impl Mode {
-    fn label(self) -> &'static str {
+    fn icon(self) -> IconKind {
         match self {
-            Mode::Timeline => "Timeline",
-            Mode::Notes => "Notes",
-            Mode::Tasks => "Tasks",
+            Mode::Timeline => IconKind::Lightning,
+            Mode::Notes => IconKind::NotePencil,
+            Mode::Tasks => IconKind::CheckSquare,
         }
     }
 }
@@ -68,9 +70,9 @@ fn AppLayout() -> Element {
                 button {
                     class: "toggle-btn",
                     onclick: move |_| menu_open.toggle(),
-                    "☰"
+                    Icon { kind: IconKind::List, size: 24 }
                 }
-                span { class: "mode-label", "{current_mode.label()}" }
+                Icon { kind: current_mode.icon(), size: 20 }
             }
 
             if menu_open() {
@@ -79,19 +81,22 @@ fn AppLayout() -> Element {
                         to: Route::Timeline {},
                         class: if current_mode == Mode::Timeline { "menu-item active" } else { "menu-item" },
                         onclick: move |_| menu_open.set(false),
-                        "⚡ Timeline"
+                        Icon { kind: IconKind::Lightning }
+                        "Timeline"
                     }
                     Link {
                         to: Route::Notes {},
                         class: if current_mode == Mode::Notes { "menu-item active" } else { "menu-item" },
                         onclick: move |_| menu_open.set(false),
-                        "📝 Notes"
+                        Icon { kind: IconKind::NotePencil }
+                        "Notes"
                     }
                     Link {
                         to: Route::Tasks {},
                         class: if current_mode == Mode::Tasks { "menu-item active" } else { "menu-item" },
                         onclick: move |_| menu_open.set(false),
-                        "☑ Tasks"
+                        Icon { kind: IconKind::CheckSquare }
+                        "Tasks"
                     }
                 }
             }

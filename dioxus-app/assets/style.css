@@ -92,6 +92,12 @@ html, body {
   height: 100%;
 }
 
+/* === Icons === */
+.icon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
 /* === Links reset === */
 a {
   color: inherit;
