@@ -1,0 +1,99 @@
+/* === App Layout === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-1);
+  line-height: var(--font-lineheight-3);
+  color: var(--text-1);
+  background: var(--surface-1);
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* === Header === */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--size-3);
+  padding: var(--size-2) var(--size-3);
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--surface-3);
+  min-height: var(--size-8);
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-3);
+  color: var(--text-2);
+  padding: var(--size-1);
+  border-radius: var(--radius-2);
+  line-height: 1;
+}
+
+.toggle-btn:hover {
+  background: var(--surface-2);
+}
+
+.mode-label {
+  font-size: var(--font-size-1);
+  font-weight: var(--font-weight-5);
+  color: var(--text-2);
+}
+
+/* === Toggle Menu === */
+.toggle-menu {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--surface-3);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+  padding: var(--size-2) var(--size-3);
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: var(--font-size-1);
+}
+
+.menu-item:hover {
+  background: var(--surface-3);
+}
+
+.menu-item.active {
+  color: var(--text-1);
+  font-weight: var(--font-weight-6);
+}
+
+/* === Memo Area === */
+.memo-area {
+  flex: 1;
+  overflow: auto;
+  padding: var(--size-3);
+}
+
+.view {
+  height: 100%;
+}
+
+/* === Links reset === */
+a {
+  color: inherit;
+  text-decoration: none;
+}

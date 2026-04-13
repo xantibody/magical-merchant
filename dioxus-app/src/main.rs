@@ -22,9 +22,14 @@ fn main() {
     dioxus::launch(App);
 }
 
+const OPEN_PROPS: Asset = asset!("/assets/open-props.min.css");
+const STYLE: Asset = asset!("/assets/style.css");
+
 #[component]
 fn App() -> Element {
     rsx! {
+        document::Link { rel: "stylesheet", href: OPEN_PROPS }
+        document::Link { rel: "stylesheet", href: STYLE }
         Router::<Route> {}
     }
 }
