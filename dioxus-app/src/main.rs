@@ -1,5 +1,6 @@
 mod components;
 mod data_dir;
+pub mod markdown;
 mod views;
 
 use components::icon::{Icon, IconKind};
