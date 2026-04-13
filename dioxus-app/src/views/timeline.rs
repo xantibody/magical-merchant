@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 use magical_merchant_core::{read_timeline, save_timeline_entry, DeviceContext};
 
+use crate::components::action_bar::ActionBar;
 use crate::data_dir;
 
 #[component]
@@ -22,7 +23,7 @@ pub fn Timeline() -> Element {
         });
     });
 
-    let mut handle_send = move |_| {
+    let mut handle_send = move || {
         let trimmed = text().trim().to_string();
         if trimmed.is_empty() || saving() {
             return;
@@ -60,9 +61,18 @@ pub fn Timeline() -> Element {
                     oninput: move |e| text.set(e.value()),
                     onkeydown: move |e| {
                         if e.key() == Key::Enter && e.modifiers().contains(Modifiers::META) {
-                            handle_send(e);
+                            handle_send();
                         }
                     },
+                }
+            }
+
+            ActionBar {
+                button {
+                    class: "action-btn",
+                    disabled: text().trim().is_empty() || saving(),
+                    onclick: move |_| handle_send(),
+                    "Send"
                 }
             }
 

@@ -328,6 +328,42 @@ html, body {
 .markdown-preview th, .markdown-preview td { border: 1px solid var(--surface-3); padding: var(--size-1) var(--size-2); text-align: start; }
 .markdown-preview th { font-weight: var(--font-weight-6); background: var(--surface-3); }
 
+/* === Action Bar === */
+.action-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+  opacity: 0;
+  transition: opacity 150ms var(--ease-2);
+  pointer-events: none;
+}
+
+.view:hover .action-bar,
+.action-bar:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.action-btn {
+  background: none;
+  border: 1px solid var(--surface-3);
+  border-radius: var(--radius-2);
+  padding: var(--size-1) var(--size-3);
+  font-size: var(--font-size-0);
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.action-btn:hover {
+  background: var(--surface-2);
+  color: var(--text-1);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 /* === Icons === */
 .icon {
   display: inline-block;
