@@ -271,51 +271,55 @@ html, body {
 
 /* === Markdown Editor === */
 .markdown-editor {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   overflow-y: auto;
 }
 
-.markdown-editor-input {
-  height: 100%;
-}
-
-.markdown-editor-preview {
+.md-preview {
   cursor: text;
   font-family: var(--font-sans);
   line-height: var(--font-lineheight-4);
   color: var(--text-1);
+  flex-shrink: 0;
 }
 
-.markdown-editor-preview h1 { font-size: var(--font-size-5); font-weight: var(--font-weight-7); margin-block: var(--size-3) var(--size-2); }
-.markdown-editor-preview h2 { font-size: var(--font-size-4); font-weight: var(--font-weight-6); margin-block: var(--size-3) var(--size-2); }
-.markdown-editor-preview h3 { font-size: var(--font-size-3); font-weight: var(--font-weight-6); margin-block: var(--size-2) var(--size-1); }
-.markdown-editor-preview p { margin-block: var(--size-2); }
-.markdown-editor-preview ul, .markdown-editor-preview ol { padding-inline-start: var(--size-5); margin-block: var(--size-2); }
-.markdown-editor-preview li { margin-block: var(--size-1); }
-.markdown-editor-preview code {
+.md-preview h1 { font-size: var(--font-size-5); font-weight: var(--font-weight-7); margin-block: var(--size-3) var(--size-2); }
+.md-preview h2 { font-size: var(--font-size-4); font-weight: var(--font-weight-6); margin-block: var(--size-3) var(--size-2); }
+.md-preview h3 { font-size: var(--font-size-3); font-weight: var(--font-weight-6); margin-block: var(--size-2) var(--size-1); }
+.md-preview p { margin-block: var(--size-2); }
+.md-preview ul, .md-preview ol { padding-inline-start: var(--size-5); margin-block: var(--size-2); }
+.md-preview li { margin-block: var(--size-1); }
+.md-preview code {
   font-family: var(--font-mono);
   font-size: 0.9em;
   background: var(--surface-3);
   padding: 0.1em 0.3em;
   border-radius: var(--radius-1);
 }
-.markdown-editor-preview pre {
+.md-preview pre {
   background: var(--surface-3);
   padding: var(--size-3);
   border-radius: var(--radius-2);
   overflow-x: auto;
 }
-.markdown-editor-preview pre code { background: none; padding: 0; }
-.markdown-editor-preview blockquote {
+.md-preview pre code { background: none; padding: 0; }
+.md-preview blockquote {
   border-inline-start: 3px solid var(--surface-4);
   padding-inline-start: var(--size-3);
   color: var(--text-2);
   margin-block: var(--size-2);
 }
-.markdown-editor-preview a { color: var(--link); }
-.markdown-editor-preview del { color: var(--text-3); }
-.markdown-editor-preview strong { font-weight: var(--font-weight-7); }
-.markdown-editor-preview em { font-style: italic; }
+.md-preview a { color: var(--link); }
+.md-preview del { color: var(--text-3); }
+.md-preview strong { font-weight: var(--font-weight-7); }
+.md-preview em { font-style: italic; }
+
+.md-edit-area {
+  flex: 1;
+  min-height: 3rem;
+}
 
 /* === Action Bar === */
 .action-bar {
