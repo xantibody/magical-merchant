@@ -311,6 +311,11 @@ html, body {
   min-height: 1.6em;
 }
 
+.md-line-raw {
+  cursor: text;
+  color: var(--text-2);
+}
+
 .md-line-view h1 { font-size: var(--font-size-5); font-weight: var(--font-weight-7); }
 .md-line-view h2 { font-size: var(--font-size-4); font-weight: var(--font-weight-6); }
 .md-line-view h3 { font-size: var(--font-size-3); font-weight: var(--font-weight-6); }
