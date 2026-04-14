@@ -15,7 +15,7 @@ test:
 verify: fmt check test
 
 dev:
-  RUST_LOG=debug dx serve --platform desktop
+  RUST_LOG=warn,magical_merchant_dioxus=debug dx serve --platform desktop
 
 build:
   dx build --platform desktop --release
