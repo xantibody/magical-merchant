@@ -1,31 +1,26 @@
-mod core
+mod rust
+mod tauri_app 'tauri-app'
 mod dioxus 'dioxus-app'
 
 [private]
 default:
   @just --list
 
-# Run formatter on workspace
 fmt:
-  cargo fmt --all
+  nix fmt
 
-# Run formatter check
-fmt-check:
-  cargo fmt --all --check
+check: rust::check
 
-# Run clippy on workspace
-lint:
-  cargo clippy --workspace -- -D warnings
+test: rust::test
 
-# Run tests on workspace
-test:
-  cargo test --workspace
+verify: fmt check test
 
-# Run all checks (lint + fmt-check + test)
-check: lint fmt-check test
+# --- Dev shortcuts ---
 
-# Full verify
-verify: fmt check
-
-# Run Dioxus desktop dev
 dev: dioxus::dev
+
+android-init: tauri_app::android-init
+
+android-dev: tauri_app::android-dev
+
+android-build: tauri_app::android-build
