@@ -7,7 +7,8 @@ use crate::markdown::render_markdown;
 /// Markdown editor with per-line inline rendering.
 ///
 /// The active line shows raw Markdown. Other lines show rendered HTML.
-/// Rendering happens asynchronously so editing is never blocked.
+/// When the active line changes, the previously active line is rendered
+/// asynchronously so editing is never blocked.
 #[component]
 pub fn MarkdownEditor(
     value: String,
@@ -15,9 +16,10 @@ pub fn MarkdownEditor(
     oninput: EventHandler<String>,
 ) -> Element {
     let mut active_line = use_signal(|| 0usize);
+    // Cache: line_index -> (source_text, rendered_html)
     let mut render_cache = use_signal(HashMap::<usize, (String, String)>::new);
-    // Tracks lines that need async rendering
-    let mut pending_renders = use_signal(Vec::<(usize, String)>::new);
+    // Tracks the previous active line so we know what to render on change
+    let mut prev_active = use_signal(|| 0usize);
     let placeholder = placeholder.unwrap_or_default();
 
     let lines: Vec<String> = if value.is_empty() {
@@ -27,66 +29,32 @@ pub fn MarkdownEditor(
     };
     let total_lines = lines.len();
 
-    // Queue non-active lines that need rendering
-    {
-        let cache = render_cache();
-        let mut to_render = Vec::new();
-        for (idx, line) in lines.iter().enumerate() {
-            if idx == active_line() {
-                continue;
-            }
-            if line.trim().is_empty() {
-                continue;
-            }
-            let needs_render = match cache.get(&idx) {
-                Some((cached_src, _html)) => cached_src != line,
-                None => true,
-            };
-            if needs_render {
-                to_render.push((idx, line.clone()));
-            }
-        }
-        if !to_render.is_empty() {
-            pending_renders.set(to_render);
-        }
-    }
-
-    // Process pending renders asynchronously
+    // When active line changes, async-render the line we just left
+    let value_for_effect = value.clone();
     use_effect(move || {
-        let pending = pending_renders();
-        if pending.is_empty() {
-            return;
-        }
-        spawn(async move {
-            for (idx, src) in pending.iter() {
-                let src_for_render = src.clone();
-                let src_for_cache = src.clone();
-                let html = tokio::task::spawn_blocking(move || render_markdown(&src_for_render))
-                    .await
-                    .unwrap_or_default();
-                // Update cache one at a time so UI updates incrementally
-                render_cache.write().insert(*idx, (src_for_cache, html));
+        let current = active_line();
+        let prev = prev_active();
+        if current != prev {
+            prev_active.set(current);
+            // Render the line we just left
+            let all_lines: Vec<String> = value_for_effect.split('\n').map(String::from).collect();
+            if prev < all_lines.len() {
+                let src = all_lines[prev].clone();
+                if !src.trim().is_empty() {
+                    spawn(async move {
+                        let src_for_render = src.clone();
+                        let html =
+                            tokio::task::spawn_blocking(move || render_markdown(&src_for_render))
+                                .await
+                                .unwrap_or_default();
+                        render_cache.write().insert(prev, (src, html));
+                    });
+                } else {
+                    render_cache.write().remove(&prev);
+                }
             }
-            pending_renders.set(Vec::new());
-        });
+        }
     });
-
-    // Clean stale cache entries
-    {
-        let cache = render_cache();
-        let stale: Vec<usize> = cache
-            .keys()
-            .filter(|k| **k >= total_lines)
-            .copied()
-            .collect();
-        if !stale.is_empty() {
-            let mut c = cache.clone();
-            for k in stale {
-                c.remove(&k);
-            }
-            render_cache.set(c);
-        }
-    }
 
     let update_line = {
         let value = value.clone();
@@ -159,7 +127,7 @@ pub fn MarkdownEditor(
                     }
                 } else {
                     match cache.get(&idx) {
-                        Some((_src, html)) => rsx! {
+                        Some((src, html)) if src == line => rsx! {
                             div {
                                 key: "line-{idx}",
                                 class: "md-line md-line-view",
@@ -167,7 +135,7 @@ pub fn MarkdownEditor(
                                 dangerous_inner_html: "{html}",
                             }
                         },
-                        None => rsx! {
+                        _ => rsx! {
                             div {
                                 key: "line-{idx}",
                                 class: "md-line md-line-raw",
