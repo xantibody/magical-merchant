@@ -62,3 +62,17 @@ Reject any implementation that violates these principles, regardless of feature 
 - **Memo area**: Occupies the full screen
 - **Actions**: Hidden by default, shown on hover (PC) / flick (mobile)
 - **Editing**: Inline Markdown live conversion (Typora-style)
+
+## Linked Notes (wikilinks)
+
+Notes link to each other Obsidian-style, but with zero capture friction:
+
+- **Title**: derived from a note's first heading (or first non-empty line) — there is no title field to fill in
+- **`[[Title]]`**: resolves by exact title match in `core`; duplicates resolve to the oldest note so links stay stable
+- **Backlinks**: "Linked from" list at the bottom of note preview
+- **Search**: case-insensitive full-text scan in `core` — no index, no extra dependencies
+
+Design constraints (do not violate):
+
+- Wikilinks render as links only in **preview**; inside the Milkdown editor they stay plain text. A wikilink editor plugin was rejected — it adds bundle weight and editing chrome
+- Link/search logic lives in `core` (`note/title.rs`, `note/wikilink.rs`, `note/search.rs`); the frontend only mirrors the resolution policy for unresolved-link styling
