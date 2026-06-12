@@ -4,7 +4,7 @@ mod sync;
 
 use magical_merchant_core::utils::device::Location;
 use magical_merchant_core::{
-    Filename, NoteFilename, NoteSummary, ProjectSummary, Slug, TaskSummary,
+    Filename, NoteFilename, NoteSummary, ProjectSummary, SearchHit, Slug, TaskSummary,
 };
 use tauri::{AppHandle, Emitter, Listener, Manager};
 
@@ -170,6 +170,25 @@ fn read_timeline_by_date(handle: AppHandle, date: String) -> Result<Vec<String>,
 }
 
 #[tauri::command]
+fn search_notes(handle: AppHandle, query: String) -> Result<Vec<SearchHit>, String> {
+    let base_dir = handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    magical_merchant_core::search_notes(&base_dir, &query).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn resolve_wikilink(handle: AppHandle, title: String) -> Result<Option<String>, String> {
+    let base_dir = handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    magical_merchant_core::resolve_wikilink(&base_dir, &title).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn list_backlinks(handle: AppHandle, filename: String) -> Result<Vec<NoteSummary>, String> {
+    let base_dir = handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    let filename = NoteFilename::parse(&filename).map_err(|e| e.to_string())?;
+    magical_merchant_core::list_backlinks(&base_dir, &filename).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn delete_note(handle: AppHandle, filename: String) -> Result<(), String> {
     let base_dir = handle.path().app_data_dir().map_err(|e| e.to_string())?;
     let filename = NoteFilename::parse(&filename).map_err(|e| e.to_string())?;
@@ -254,6 +273,9 @@ pub fn run() {
             read_timeline_by_date,
             delete_note,
             delete_task,
+            search_notes,
+            resolve_wikilink,
+            list_backlinks,
             sync::sync_start,
             sync::sync_status,
             auth::auth_login,

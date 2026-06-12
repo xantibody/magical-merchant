@@ -6,6 +6,13 @@ export interface Note {
   time?: string;
   tags: string[];
   preview: string;
+  title: string;
+}
+
+export interface SearchHit {
+  filename: string;
+  title: string;
+  snippet: string;
 }
 
 export interface Project {
@@ -45,6 +52,9 @@ type CommandMap = {
   list_notes: { args: void; result: Note[] };
   read_note: { args: { filename: string }; result: string };
   delete_note: { args: { filename: string }; result: void };
+  search_notes: { args: { query: string }; result: SearchHit[] };
+  resolve_wikilink: { args: { title: string }; result: string | null };
+  list_backlinks: { args: { filename: string }; result: Note[] };
   save_document: { args: { body: string; tags: string[] } & LocationArgs; result: void };
   create_project: {
     args: { slug: string; name: string; description: string };
