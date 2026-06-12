@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 
-interface Env {
+export interface Env {
   BUCKET: R2Bucket;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
@@ -45,7 +45,12 @@ function errorResponse(message: string, status: number): Response {
 function extractKey(pathname: string): string | null {
   const prefix = "/files/";
   if (!pathname.startsWith(prefix)) return null;
-  return decodeURIComponent(pathname.slice(prefix.length));
+  try {
+    return decodeURIComponent(pathname.slice(prefix.length));
+  } catch {
+    // 不正な %-エンコーディングで例外 → 500 になるのを防ぐ
+    return null;
+  }
 }
 
 function containsTraversal(key: string): boolean {
@@ -97,7 +102,13 @@ async function handleGet(bucket: R2Bucket, key: string): Promise<Response> {
 
 async function handlePut(bucket: R2Bucket, key: string, request: Request): Promise<Response> {
   const body = await request.text();
-  const lastModified = request.headers.get("X-Last-Modified") ?? new Date().toISOString();
+  const header = request.headers.get("X-Last-Modified");
+
+  // 不正なタイムスタンプを保存すると、全クライアントの list がパースエラーで壊れる
+  if (header !== null && Number.isNaN(Date.parse(header))) {
+    return errorResponse("Invalid X-Last-Modified", 400);
+  }
+  const lastModified = header ?? new Date().toISOString();
 
   await bucket.put(key, body, {
     customMetadata: { lastModified },
@@ -155,7 +166,7 @@ function getJwtExpiry(env: Env): number {
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const { pathname } = url;
     const method = request.method;

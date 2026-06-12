@@ -415,7 +415,32 @@ describe("Workers R2 Proxy", () => {
     });
   });
 
+  describe("PUT validation", () => {
+    it("rejects invalid X-Last-Modified", async () => {
+      const req = request("/files/notes/bad.md", {
+        method: "PUT",
+        body: "content",
+        headers: { "X-Last-Modified": "not-a-date" },
+      });
+      const ctx = createExecutionContext();
+      const res = await worker.fetch(req, env, ctx);
+      await waitOnExecutionContext(ctx);
+
+      // 不正なタイムスタンプを保存すると、全クライアントの list がパースエラーで壊れる
+      expect(res.status).toBe(400);
+    });
+  });
+
   describe("Security", () => {
+    it("returns 400 for malformed percent-encoding instead of crashing", async () => {
+      const req = request("/files/%E0%A4%A");
+      const ctx = createExecutionContext();
+      const res = await worker.fetch(req, env, ctx);
+      await waitOnExecutionContext(ctx);
+
+      expect(res.status).toBe(400);
+    });
+
     it("rejects path traversal with ..", async () => {
       const req = request("/files/notes/..%2Fsecret.md");
       const ctx = createExecutionContext();
