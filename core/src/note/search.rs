@@ -29,7 +29,7 @@ pub fn search(base_dir: &Path, query: &str) -> Result<Vec<SearchHit>, CoreError>
     if query.is_empty() {
         return Ok(Vec::new());
     }
-    let query_chars: Vec<char> = query.chars().flat_map(|c| c.to_lowercase()).collect();
+    let query_chars = lowercase_chars(query);
 
     let mut hits = Vec::new();
     for entry in list_md_files(&notes_dir(base_dir))? {
@@ -54,9 +54,14 @@ pub fn search(base_dir: &Path, query: &str) -> Result<Vec<SearchHit>, CoreError>
     Ok(hits)
 }
 
+/// Lowercases a string into chars for use with `find_match`.
+pub(super) fn lowercase_chars(s: &str) -> Vec<char> {
+    s.chars().flat_map(|c| c.to_lowercase()).collect()
+}
+
 /// Finds the first case-insensitive occurrence of `query` in `haystack`,
 /// comparing char by char so multi-byte text stays safe.
-fn find_match(haystack: &[char], query: &[char]) -> Option<usize> {
+pub(super) fn find_match(haystack: &[char], query: &[char]) -> Option<usize> {
     if query.is_empty() || haystack.len() < query.len() {
         return None;
     }

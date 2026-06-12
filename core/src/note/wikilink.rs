@@ -118,7 +118,7 @@ pub fn backlinks(base_dir: &Path, target: &NoteFilename) -> Result<Vec<NoteSumma
 
 /// Resolves a title against an already-loaded note list (same policy as
 /// `resolve`, without re-reading the directory per link).
-fn resolve_in(notes: &[NoteSummary], title: &str) -> Option<String> {
+pub(super) fn resolve_in(notes: &[NoteSummary], title: &str) -> Option<String> {
     let title = title.trim();
     if title.is_empty() {
         return None;

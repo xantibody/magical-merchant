@@ -1,4 +1,5 @@
 pub mod error;
+mod mention;
 pub mod repository;
 mod search;
 mod summary;
@@ -66,6 +67,13 @@ pub fn list_backlinks(
     filename: &NoteFilename,
 ) -> Result<Vec<NoteSummary>, CoreError> {
     wikilink::backlinks(base_dir, filename)
+}
+
+pub fn list_mentions(
+    base_dir: &Path,
+    filename: &NoteFilename,
+) -> Result<Vec<NoteSummary>, CoreError> {
+    mention::mentions(base_dir, filename)
 }
 
 #[cfg(test)]

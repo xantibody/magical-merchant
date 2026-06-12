@@ -10,7 +10,8 @@ pub use error::CoreError;
 pub use note::error::NoteError;
 pub use note::{
     NoteSummary, SearchHit, create_draft_note, delete_note, extract_wikilinks, list_backlinks,
-    list_notes, read_note, read_note_by_filename, resolve_wikilink, search_notes, update_note,
+    list_mentions, list_notes, read_note, read_note_by_filename, resolve_wikilink, search_notes,
+    update_note,
 };
 pub use project::error::ProjectError;
 pub use project::{
