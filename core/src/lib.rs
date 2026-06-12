@@ -20,7 +20,9 @@ pub use project::{
     list_projects, read_project, update_task,
 };
 pub use timeline::error::TimelineError;
-pub use timeline::{list_timeline_dates, read_timeline, save_timeline_entry};
+pub use timeline::{
+    TimelineSearchHit, list_timeline_dates, read_timeline, save_timeline_entry, search_timeline,
+};
 pub use utils::device::Context as DeviceContext;
 pub use utils::frontmatter;
 pub use utils::validated::{Filename, NoteFilename, Slug};

@@ -5,6 +5,7 @@ mod sync;
 use magical_merchant_core::utils::device::Location;
 use magical_merchant_core::{
     Filename, NoteFilename, NoteSummary, ProjectSummary, SearchHit, Slug, TaskSummary,
+    TimelineSearchHit,
 };
 use tauri::{AppHandle, Emitter, Listener, Manager};
 
@@ -176,6 +177,12 @@ fn search_notes(handle: AppHandle, query: String) -> Result<Vec<SearchHit>, Stri
 }
 
 #[tauri::command]
+fn search_timeline(handle: AppHandle, query: String) -> Result<Vec<TimelineSearchHit>, String> {
+    let base_dir = handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    magical_merchant_core::search_timeline(&base_dir, &query).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn resolve_wikilink(handle: AppHandle, title: String) -> Result<Option<String>, String> {
     let base_dir = handle.path().app_data_dir().map_err(|e| e.to_string())?;
     magical_merchant_core::resolve_wikilink(&base_dir, &title).map_err(|e| e.to_string())
@@ -281,6 +288,7 @@ pub fn run() {
             delete_note,
             delete_task,
             search_notes,
+            search_timeline,
             resolve_wikilink,
             list_backlinks,
             list_mentions,

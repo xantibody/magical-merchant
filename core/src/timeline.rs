@@ -1,7 +1,9 @@
 pub mod error;
 pub mod repository;
+mod search;
 
 pub use repository::Timeline;
+pub use search::TimelineSearchHit;
 
 use std::path::Path;
 
@@ -24,6 +26,10 @@ pub fn list_timeline_dates(base_dir: &Path) -> Result<Vec<NaiveDate>, CoreError>
 
 pub fn read_timeline(base_dir: &Path, date: NaiveDate) -> Result<Vec<String>, CoreError> {
     Timeline::new(base_dir.to_path_buf()).read(date)
+}
+
+pub fn search_timeline(base_dir: &Path, query: &str) -> Result<Vec<TimelineSearchHit>, CoreError> {
+    search::search(base_dir, query)
 }
 
 #[cfg(test)]

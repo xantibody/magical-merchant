@@ -15,6 +15,12 @@ export interface SearchHit {
   snippet: string;
 }
 
+export interface TimelineSearchHit {
+  date: string;
+  time: string;
+  snippet: string;
+}
+
 export interface Project {
   slug: string;
   name: string;
@@ -53,6 +59,7 @@ type CommandMap = {
   read_note: { args: { filename: string }; result: string };
   delete_note: { args: { filename: string }; result: void };
   search_notes: { args: { query: string }; result: SearchHit[] };
+  search_timeline: { args: { query: string }; result: TimelineSearchHit[] };
   resolve_wikilink: { args: { title: string }; result: string | null };
   list_backlinks: { args: { filename: string }; result: Note[] };
   list_mentions: { args: { filename: string }; result: Note[] };
