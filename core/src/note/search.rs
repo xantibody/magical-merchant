@@ -6,12 +6,9 @@ use crate::error::CoreError;
 use crate::utils::frontmatter::{self, NoteFrontmatter};
 use crate::utils::fs::list_md_files;
 use crate::utils::paths::notes_dir;
+use crate::utils::text::{find_match, lowercase_chars, make_snippet};
 
 use super::title::extract_title;
-
-/// How much context to keep around a match when building a snippet.
-const SNIPPET_BEFORE: usize = 30;
-const SNIPPET_AFTER: usize = 50;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SearchHit {
@@ -52,44 +49,6 @@ pub fn search(base_dir: &Path, query: &str) -> Result<Vec<SearchHit>, CoreError>
     }
 
     Ok(hits)
-}
-
-/// Lowercases a string into chars for use with `find_match`.
-pub(super) fn lowercase_chars(s: &str) -> Vec<char> {
-    s.chars().flat_map(|c| c.to_lowercase()).collect()
-}
-
-/// Finds the first case-insensitive occurrence of `query` in `haystack`,
-/// comparing char by char so multi-byte text stays safe.
-pub(super) fn find_match(haystack: &[char], query: &[char]) -> Option<usize> {
-    if query.is_empty() || haystack.len() < query.len() {
-        return None;
-    }
-    (0..=haystack.len() - query.len()).find(|&start| {
-        haystack[start..start + query.len()]
-            .iter()
-            .flat_map(|c| c.to_lowercase())
-            .eq(query.iter().copied())
-    })
-}
-
-/// Cuts a window around the match, collapsing newlines and adding ellipses
-/// when text was dropped on either side.
-fn make_snippet(chars: &[char], match_index: usize, match_len: usize) -> String {
-    let start = match_index.saturating_sub(SNIPPET_BEFORE);
-    let end = (match_index + match_len + SNIPPET_AFTER).min(chars.len());
-
-    let mut snippet: String = chars[start..end]
-        .iter()
-        .map(|&c| if c == '\n' { ' ' } else { c })
-        .collect();
-    if start > 0 {
-        snippet = format!("…{snippet}");
-    }
-    if end < chars.len() {
-        snippet = format!("{snippet}…");
-    }
-    snippet
 }
 
 #[cfg(test)]

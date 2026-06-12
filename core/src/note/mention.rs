@@ -4,8 +4,9 @@ use crate::error::CoreError;
 use crate::utils::frontmatter::{self, NoteFrontmatter};
 use crate::utils::validated::NoteFilename;
 
+use crate::utils::text::{find_match, lowercase_chars};
+
 use super::repository::Notes;
-use super::search::{find_match, lowercase_chars};
 use super::summary::Summary as NoteSummary;
 use super::wikilink::{extract_wikilinks, resolve_in};
 
