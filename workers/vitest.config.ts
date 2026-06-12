@@ -5,6 +5,14 @@ export default defineWorkersConfig({
     poolOptions: {
       workers: {
         wrangler: { configPath: "./wrangler.toml" },
+        miniflare: {
+          // テストが期待する値 (index.test.ts の TEST_SECRET / test-client-id) と一致させる
+          bindings: {
+            JWT_SECRET: "test-jwt-secret-for-development-only",
+            GOOGLE_CLIENT_ID: "test-client-id",
+            GOOGLE_CLIENT_SECRET: "test-client-secret",
+          },
+        },
       },
     },
   },
