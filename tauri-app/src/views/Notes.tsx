@@ -37,6 +37,22 @@ export default function Notes() {
   const [error, setError] = createSignal("");
   const [editorInstance, setEditorInstance] = createSignal<Editor | undefined>();
   const [notes, { refetch: refetchNotes }] = createResource(fetchNotes);
+  const [searchInput, setSearchInput] = createSignal("");
+  const [searchQuery, setSearchQuery] = createSignal("");
+  const [searchResults] = createResource(searchQuery, async (query) =>
+    query.trim() ? typedInvoke("search_notes", { query }) : null,
+  );
+  const [backlinks] = createResource(
+    () => (viewMode() === "preview" ? selectedNote()?.filename : undefined),
+    (filename) => typedInvoke("list_backlinks", { filename }),
+  );
+
+  let searchTimer: ReturnType<typeof setTimeout> | undefined;
+  const handleSearchInput = (value: string) => {
+    setSearchInput(value);
+    if (searchTimer) clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => setSearchQuery(value), 300);
+  };
 
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
   let isHydrating = false;
@@ -105,6 +121,7 @@ export default function Notes() {
   );
 
   onCleanup(() => {
+    if (searchTimer) clearTimeout(searchTimer);
     if (debounceTimer) {
       clearTimeout(debounceTimer);
       if (body().trim()) void save();
@@ -139,6 +156,36 @@ export default function Notes() {
       setSelectedNote(note);
       setNoteContent(content);
       setViewMode("preview");
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
+  const openPreviewByFilename = async (filename: string) => {
+    let note = notes()?.find((n) => n.filename === filename);
+    if (!note) {
+      await refetchNotes();
+      note = notes()?.find((n) => n.filename === filename);
+    }
+    if (note) await openPreview(note);
+  };
+
+  // 表示時の未解決判定。コアの解決ポリシー（最古優先）をミラーする
+  const resolveFromList = (title: string): string | null => {
+    const matches = (notes() ?? []).filter((n) => n.title === title.trim());
+    if (matches.length === 0) return null;
+    return matches.reduce((a, b) => (a.filename < b.filename ? a : b)).filename;
+  };
+
+  const handleWikilinkClick = async (title: string) => {
+    try {
+      const filename = await typedInvoke("resolve_wikilink", { title });
+      if (!filename) {
+        setError(`リンク先が見つかりません: ${title}`);
+        return;
+      }
+      setError("");
+      await openPreviewByFilename(filename);
     } catch (e) {
       setError(String(e));
     }
@@ -248,26 +295,54 @@ export default function Notes() {
             <Show when={error()}>
               <p class="error-text">{error()}</p>
             </Show>
+            <input
+              type="search"
+              class="notes-search-input"
+              placeholder="Search notes..."
+              value={searchInput()}
+              onInput={(e) => handleSearchInput(e.currentTarget.value)}
+            />
             <div class="browse-list">
-              <Show when={notes()?.length} fallback={<p class="empty-state">ノートなし</p>}>
-                <For each={notes()}>
-                  {(note) => (
-                    <button
-                      class="browse-list-item note-list-item"
-                      onClick={() => openPreview(note)}
-                    >
-                      <span class="note-preview-text">{note.preview || "(empty)"}</span>
-                      <span class="note-meta">
-                        <Show when={note.time}>
-                          <span class="note-time">{formatTime(note.time)}</span>
-                        </Show>
-                        <Show when={note.tags.length}>
-                          <span class="note-tags">{note.tags.join(", ")}</span>
-                        </Show>
-                      </span>
-                    </button>
-                  )}
-                </For>
+              <Show
+                when={searchResults()}
+                fallback={
+                  <Show when={notes()?.length} fallback={<p class="empty-state">ノートなし</p>}>
+                    <For each={notes()}>
+                      {(note) => (
+                        <button
+                          class="browse-list-item note-list-item"
+                          onClick={() => openPreview(note)}
+                        >
+                          <span class="note-preview-text">{note.preview || "(empty)"}</span>
+                          <span class="note-meta">
+                            <Show when={note.time}>
+                              <span class="note-time">{formatTime(note.time)}</span>
+                            </Show>
+                            <Show when={note.tags.length}>
+                              <span class="note-tags">{note.tags.join(", ")}</span>
+                            </Show>
+                          </span>
+                        </button>
+                      )}
+                    </For>
+                  </Show>
+                }
+              >
+                {(hits) => (
+                  <Show when={hits().length} fallback={<p class="empty-state">該当なし</p>}>
+                    <For each={hits()}>
+                      {(hit) => (
+                        <button
+                          class="browse-list-item note-list-item"
+                          onClick={() => openPreviewByFilename(hit.filename)}
+                        >
+                          <span class="note-preview-text">{hit.title || "(untitled)"}</span>
+                          <span class="search-snippet">{hit.snippet}</span>
+                        </button>
+                      )}
+                    </For>
+                  </Show>
+                )}
               </Show>
             </div>
           </div>
@@ -284,7 +359,26 @@ export default function Notes() {
             <Show when={error()}>
               <p class="error-text">{error()}</p>
             </Show>
-            <MarkdownPreview source={noteContent()} />
+            <MarkdownPreview
+              source={extractBody(noteContent())}
+              resolveWikilink={resolveFromList}
+              onWikilinkClick={handleWikilinkClick}
+            />
+            <Show when={backlinks()?.length}>
+              <section class="backlinks">
+                <h2 class="backlinks-heading">Linked from</h2>
+                <For each={backlinks()}>
+                  {(bl) => (
+                    <button
+                      class="backlink-item"
+                      onClick={() => openPreviewByFilename(bl.filename)}
+                    >
+                      {bl.title || bl.preview || "(untitled)"}
+                    </button>
+                  )}
+                </For>
+              </section>
+            </Show>
           </div>
 
           <ActionBar>

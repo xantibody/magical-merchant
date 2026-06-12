@@ -59,6 +59,16 @@
   text-decoration: underline;
 }
 
+.markdown-preview a.wikilink {
+  text-decoration: none;
+  border-bottom: 1px solid var(--app-accent);
+}
+
+.markdown-preview a.wikilink--unresolved {
+  color: var(--app-text-muted);
+  border-bottom: 1px dashed var(--app-text-muted);
+}
+
 .markdown-preview hr {
   border: none;
   border-top: 1px solid var(--app-border);

@@ -17,15 +17,45 @@ interface ShikiBlock {
   lang: string;
 }
 
-interface RenderEnv {
+export interface WikilinkEnv {
+  /** Returns the target filename, or null when no note has the title. */
+  resolveWikilink?: (title: string) => string | null;
+}
+
+interface RenderEnv extends WikilinkEnv {
   __shikiBlocks?: ShikiBlock[];
+}
+
+// [[Title]] links. Registered before "link" so the earlier "backticks" rule
+// has already consumed inline code spans; fences never reach inline parsing.
+function wikilinkPlugin(markdown: MarkdownIt): void {
+  markdown.inline.ruler.before("link", "wikilink", (state, silent) => {
+    if (!state.src.startsWith("[[", state.pos)) return false;
+    const close = state.src.indexOf("]]", state.pos + 2);
+    if (close < 0) return false;
+    const title = state.src.slice(state.pos + 2, close).trim();
+    if (!title || /[[\]\n]/.test(title)) return false;
+    if (!silent) {
+      const token = state.push("wikilink", "a", 0);
+      token.content = title;
+    }
+    state.pos = close + 2;
+    return true;
+  });
+  markdown.renderer.rules.wikilink = (tokens, idx, _options, env: WikilinkEnv) => {
+    const title = tokens[idx].content;
+    const resolved = env.resolveWikilink ? env.resolveWikilink(title) : undefined;
+    const cls = resolved === null ? "wikilink wikilink--unresolved" : "wikilink";
+    const escaped = markdown.utils.escapeHtml(title);
+    return `<a href="#" class="${cls}" data-wikilink="${escaped}">${escaped}</a>`;
+  };
 }
 
 const fenceMd = MarkdownIt({
   html: false,
   linkify: true,
   typographer: true,
-});
+}).use(wikilinkPlugin);
 
 fenceMd.renderer.rules.fence = (tokens, idx, _options, renderEnv: RenderEnv) => {
   const token = tokens[idx];
@@ -39,8 +69,8 @@ fenceMd.renderer.rules.fence = (tokens, idx, _options, renderEnv: RenderEnv) => 
   return `<div id="${id}" class="shiki-placeholder"><pre><code>${fenceMd.utils.escapeHtml(code)}</code></pre></div>`;
 };
 
-export async function renderMarkdown(source: string): Promise<string> {
-  const env: RenderEnv = {};
+export async function renderMarkdown(source: string, wikilinkEnv?: WikilinkEnv): Promise<string> {
+  const env: RenderEnv = { ...wikilinkEnv };
   let html = fenceMd.render(source, env);
 
   const blocks = env.__shikiBlocks || [];

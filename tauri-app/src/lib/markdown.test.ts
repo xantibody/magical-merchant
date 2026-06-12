@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { renderMarkdownSync } from "./markdown";
+import { renderMarkdown, renderMarkdownSync } from "./markdown";
 
 describe("renderMarkdownSync", () => {
   it("converts a heading", () => {
@@ -43,5 +43,54 @@ describe("renderMarkdownSync", () => {
   it("returns empty string for empty string", () => {
     const html = renderMarkdownSync("");
     expect(html.trim()).toBe("");
+  });
+});
+
+describe("wikilink rendering", () => {
+  it("renders [[Title]] as a wikilink anchor", async () => {
+    const html = await renderMarkdown("see [[My Note]]");
+    expect(html).toContain('data-wikilink="My Note"');
+    expect(html).toContain('class="wikilink"');
+    expect(html).toContain(">My Note</a>");
+  });
+
+  it("does not linkify inside inline code", async () => {
+    const html = await renderMarkdown("`[[code]]`");
+    expect(html).not.toContain("data-wikilink");
+    expect(html).toContain("<code>[[code]]</code>");
+  });
+
+  it("does not linkify inside fenced code block", async () => {
+    const html = await renderMarkdown("```\n[[fence]]\n```");
+    expect(html).not.toContain("data-wikilink");
+  });
+
+  it("escapes html in title", async () => {
+    const html = await renderMarkdown("[[<img src=x>]]");
+    expect(html).not.toContain("<img");
+  });
+
+  it("leaves unclosed [[ as plain text", async () => {
+    const html = await renderMarkdown("[[unclosed");
+    expect(html).not.toContain("data-wikilink");
+    expect(html).toContain("[[unclosed");
+  });
+
+  it("ignores empty titles", async () => {
+    const html = await renderMarkdown("[[]] and [[  ]]");
+    expect(html).not.toContain("data-wikilink");
+  });
+
+  it("marks unresolved links when a resolver is provided", async () => {
+    const html = await renderMarkdown("[[Known]] [[Unknown]]", {
+      resolveWikilink: (title) => (title === "Known" ? "20260101_000001.md" : null),
+    });
+    expect(html).toContain('class="wikilink"');
+    expect(html).toContain('class="wikilink wikilink--unresolved"');
+  });
+
+  it("trims wikilink titles", async () => {
+    const html = await renderMarkdown("[[ Padded ]]");
+    expect(html).toContain('data-wikilink="Padded"');
   });
 });
