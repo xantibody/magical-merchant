@@ -1,9 +1,11 @@
 import { createSignal, createResource, For, Show, Switch, Match } from "solid-js";
+import { useNavigate } from "@solidjs/router";
 import { typedInvoke } from "../lib/commands";
 import ActionBar from "../components/ActionBar";
 import Icon from "../components/Icon";
 import TimelineEntry from "../components/TimelineEntry";
 import { getLocation } from "../lib/location";
+import { ROUTES } from "../lib/routes";
 
 type ViewMode = "input" | "list" | "preview";
 
@@ -73,9 +75,27 @@ export default function Timeline() {
   const goBack = () => {
     if (viewMode() === "preview") {
       setSelectedDate(null);
+      setLinkError("");
       setViewMode("list");
     } else {
       setViewMode("input");
+    }
+  };
+
+  const navigate = useNavigate();
+  const [linkError, setLinkError] = createSignal("");
+
+  // タイムラインの [[リンク]] からノートへ飛ぶ（キャプチャと知識をつなぐ）
+  const handleWikilinkClick = async (title: string) => {
+    try {
+      const filename = await typedInvoke("resolve_wikilink", { title });
+      if (!filename) {
+        setLinkError(`リンク先が見つかりません: ${title}`);
+        return;
+      }
+      navigate(`${ROUTES.NOTES}?note=${encodeURIComponent(filename)}`);
+    } catch (e) {
+      setLinkError(String(e));
     }
   };
 
@@ -142,9 +162,16 @@ export default function Timeline() {
         <Match when={viewMode() === "preview"}>
           <div class="timeline">
             <h3 class="preview-date-header">{selectedDate()}</h3>
+            <Show when={linkError()}>
+              <p class="error-text">{linkError()}</p>
+            </Show>
             <div class="preview-entries">
               <Show when={dateEntries()?.length} fallback={<p class="empty-state">エントリなし</p>}>
-                <For each={dateEntries()}>{(entry) => <TimelineEntry raw={entry} markdown />}</For>
+                <For each={dateEntries()}>
+                  {(entry) => (
+                    <TimelineEntry raw={entry} markdown onWikilinkClick={handleWikilinkClick} />
+                  )}
+                </For>
               </Show>
             </div>
           </div>

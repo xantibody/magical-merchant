@@ -12,6 +12,7 @@ import {
 interface TimelineEntryProps {
   raw: string;
   markdown?: boolean;
+  onWikilinkClick?: (title: string) => void;
 }
 
 export default function TimelineEntry(props: TimelineEntryProps) {
@@ -28,7 +29,7 @@ export default function TimelineEntry(props: TimelineEntryProps) {
           fallback={<span class="timeline-entry-text">{parsed().text}</span>}
         >
           <span class="timeline-entry-text">
-            <MarkdownPreview source={parsed().text} />
+            <MarkdownPreview source={parsed().text} onWikilinkClick={props.onWikilinkClick} />
           </span>
         </Show>
       </div>

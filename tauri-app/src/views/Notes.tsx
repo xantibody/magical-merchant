@@ -9,6 +9,7 @@ import {
   Switch,
   Match,
 } from "solid-js";
+import { useSearchParams } from "@solidjs/router";
 import type { Editor } from "@milkdown/kit/core";
 import { typedInvoke, type Note } from "../lib/commands";
 import MilkdownEditor from "../components/MilkdownEditor";
@@ -45,6 +46,10 @@ export default function Notes() {
   const [backlinks] = createResource(
     () => (viewMode() === "preview" ? selectedNote()?.filename : undefined),
     (filename) => typedInvoke("list_backlinks", { filename }),
+  );
+  const [mentions] = createResource(
+    () => (viewMode() === "preview" ? selectedNote()?.filename : undefined),
+    (filename) => typedInvoke("list_mentions", { filename }),
   );
 
   let searchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -176,6 +181,16 @@ export default function Notes() {
     if (matches.length === 0) return null;
     return matches.reduce((a, b) => (a.filename < b.filename ? a : b)).filename;
   };
+
+  // Timeline の [[リンク]] 経由で ?note=<filename> 付きで遷移してくる
+  const [searchParams, setSearchParams] = useSearchParams();
+  createEffect(() => {
+    const target = searchParams.note;
+    if (typeof target === "string" && target && notes()) {
+      setSearchParams({ note: undefined }, { replace: true });
+      void openPreviewByFilename(target);
+    }
+  });
 
   const handleWikilinkClick = async (title: string) => {
     try {
@@ -374,6 +389,18 @@ export default function Notes() {
                       onClick={() => openPreviewByFilename(bl.filename)}
                     >
                       {bl.title || bl.preview || "(untitled)"}
+                    </button>
+                  )}
+                </For>
+              </section>
+            </Show>
+            <Show when={mentions()?.length}>
+              <section class="backlinks">
+                <h2 class="backlinks-heading">Mentioned in</h2>
+                <For each={mentions()}>
+                  {(m) => (
+                    <button class="backlink-item" onClick={() => openPreviewByFilename(m.filename)}>
+                      {m.title || m.preview || "(untitled)"}
                     </button>
                   )}
                 </For>

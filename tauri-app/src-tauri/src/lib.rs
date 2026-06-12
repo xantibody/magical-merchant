@@ -189,6 +189,13 @@ fn list_backlinks(handle: AppHandle, filename: String) -> Result<Vec<NoteSummary
 }
 
 #[tauri::command]
+fn list_mentions(handle: AppHandle, filename: String) -> Result<Vec<NoteSummary>, String> {
+    let base_dir = handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    let filename = NoteFilename::parse(&filename).map_err(|e| e.to_string())?;
+    magical_merchant_core::list_mentions(&base_dir, &filename).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn delete_note(handle: AppHandle, filename: String) -> Result<(), String> {
     let base_dir = handle.path().app_data_dir().map_err(|e| e.to_string())?;
     let filename = NoteFilename::parse(&filename).map_err(|e| e.to_string())?;
@@ -276,6 +283,7 @@ pub fn run() {
             search_notes,
             resolve_wikilink,
             list_backlinks,
+            list_mentions,
             sync::sync_start,
             sync::sync_status,
             auth::auth_login,

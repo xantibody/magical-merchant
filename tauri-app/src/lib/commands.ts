@@ -55,6 +55,7 @@ type CommandMap = {
   search_notes: { args: { query: string }; result: SearchHit[] };
   resolve_wikilink: { args: { title: string }; result: string | null };
   list_backlinks: { args: { filename: string }; result: Note[] };
+  list_mentions: { args: { filename: string }; result: Note[] };
   save_document: { args: { body: string; tags: string[] } & LocationArgs; result: void };
   create_project: {
     args: { slug: string; name: string; description: string };
