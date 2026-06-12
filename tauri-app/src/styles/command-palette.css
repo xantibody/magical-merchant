@@ -1,0 +1,90 @@
+/* Command palette — invisible until summoned (Cmd+K / Ctrl+K) */
+
+.palette-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 12vh;
+  background: rgb(0 0 0 / 30%);
+}
+
+.palette {
+  width: min(560px, calc(100vw - var(--size-6)));
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-4);
+  overflow: hidden;
+}
+
+.palette-input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+  padding: var(--size-2) var(--size-3);
+  border-bottom: 1px solid var(--app-border);
+  color: var(--app-text-muted);
+}
+
+.palette-input {
+  flex: 1;
+  border: none;
+  background: none;
+  color: var(--app-text);
+  font-size: var(--font-size-1);
+  outline: none;
+}
+
+.palette-results {
+  overflow-y: auto;
+  padding: var(--size-1);
+}
+
+.palette-empty {
+  padding: var(--size-3);
+  margin: 0;
+  text-align: center;
+  color: var(--app-text-muted);
+  font-size: var(--font-size-0);
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+  width: 100%;
+  padding: var(--size-1) var(--size-2);
+  border: none;
+  border-radius: var(--radius-2);
+  background: none;
+  color: var(--app-text);
+  font-size: var(--font-size-1);
+  text-align: left;
+  cursor: pointer;
+}
+
+.palette-item--selected {
+  background: var(--app-border);
+}
+
+.palette-item-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.palette-item-detail {
+  flex: 1;
+  min-width: 0;
+  color: var(--app-text-muted);
+  font-size: var(--font-size-0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

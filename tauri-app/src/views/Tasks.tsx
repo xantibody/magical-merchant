@@ -9,7 +9,9 @@ import {
   Switch,
   Match,
 } from "solid-js";
+import { useNavigate } from "@solidjs/router";
 import { typedInvoke, type Project, type Task } from "../lib/commands";
+import { ROUTES } from "../lib/routes";
 import Icon from "../components/Icon";
 import ActionBar from "../components/ActionBar";
 import MilkdownEditor from "../components/MilkdownEditor";
@@ -31,6 +33,13 @@ async function fetchProjects(): Promise<Project[]> {
 }
 
 export default function Tasks() {
+  const navigate = useNavigate();
+  // タスク本文の [[リンク]] からノートへ飛ぶ
+  const handleWikilinkClick = async (title: string) => {
+    const filename = await typedInvoke("resolve_wikilink", { title }).catch(() => null);
+    if (filename) navigate(`${ROUTES.NOTES}?note=${encodeURIComponent(filename)}`);
+  };
+
   const [selectedProject, setSelectedProject] = createSignal<string>("");
   const [projects, { refetch: refetchProjects }] = createResource(fetchProjects);
   const [tasks, { refetch: refetchTasks }] = createResource(selectedProject, (slug) => {
@@ -485,7 +494,10 @@ export default function Tasks() {
             </div>
             <div class="task-preview-body">
               <Show when={selectedTask()?.body} fallback={<p class="empty-state">本文なし</p>}>
-                <MarkdownPreview source={selectedTask()!.body} />
+                <MarkdownPreview
+                  source={selectedTask()!.body}
+                  onWikilinkClick={handleWikilinkClick}
+                />
               </Show>
             </div>
           </div>

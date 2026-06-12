@@ -1,9 +1,10 @@
 import { createSignal, createEffect, onCleanup } from "solid-js";
-import { useLocation } from "@solidjs/router";
+import { useLocation, useNavigate } from "@solidjs/router";
+import CommandPalette from "../components/CommandPalette";
 import Icon, { type IconName } from "../components/Icon";
 import SyncButton from "../components/SyncButton";
 import ToggleMenu from "../components/ToggleMenu";
-import { MODE_ICONS, MODE_LABELS, type RoutePath } from "../lib/routes";
+import { MODE_ICONS, MODE_LABELS, ROUTES, type RoutePath } from "../lib/routes";
 
 interface AppLayoutProps {
   children?: any;
@@ -32,8 +33,30 @@ function applyTheme(theme: Theme) {
 
 export default function AppLayout(props: AppLayoutProps) {
   const [menuOpen, setMenuOpen] = createSignal(false);
+  const [paletteOpen, setPaletteOpen] = createSignal(false);
   const [theme, setTheme] = createSignal<Theme>(getInitialTheme());
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Cmd+K / Ctrl+K でどこからでもパレットを呼び出す
+  const handleGlobalKeyDown = (e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      e.preventDefault();
+      setPaletteOpen(!paletteOpen());
+    }
+  };
+  window.addEventListener("keydown", handleGlobalKeyDown);
+  onCleanup(() => window.removeEventListener("keydown", handleGlobalKeyDown));
+
+  const openNoteFromPalette = (filename: string) => {
+    setPaletteOpen(false);
+    navigate(`${ROUTES.NOTES}?note=${encodeURIComponent(filename)}`);
+  };
+
+  const openTimelineDateFromPalette = (date: string) => {
+    setPaletteOpen(false);
+    navigate(`${ROUTES.TIMELINE}?date=${encodeURIComponent(date)}`);
+  };
 
   applyTheme(theme());
 
@@ -86,6 +109,12 @@ export default function AppLayout(props: AppLayoutProps) {
         </div>
       </header>
       <ToggleMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+      <CommandPalette
+        open={paletteOpen()}
+        onClose={() => setPaletteOpen(false)}
+        onOpenNote={openNoteFromPalette}
+        onOpenTimelineDate={openTimelineDateFromPalette}
+      />
       {props.children}
       <div class="mode-indicator">
         <Icon name={currentIcon()} size={14} />

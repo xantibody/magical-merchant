@@ -1,5 +1,5 @@
-import { createSignal, createResource, For, Show, Switch, Match } from "solid-js";
-import { useNavigate } from "@solidjs/router";
+import { createSignal, createEffect, createResource, For, Show, Switch, Match } from "solid-js";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import { typedInvoke } from "../lib/commands";
 import ActionBar from "../components/ActionBar";
 import Icon from "../components/Icon";
@@ -84,6 +84,16 @@ export default function Timeline() {
 
   const navigate = useNavigate();
   const [linkError, setLinkError] = createSignal("");
+
+  // パレット経由で ?date=YYYY-MM-DD 付きで遷移してくる
+  const [searchParams, setSearchParams] = useSearchParams();
+  createEffect(() => {
+    const date = searchParams.date;
+    if (typeof date === "string" && date) {
+      setSearchParams({ date: undefined }, { replace: true });
+      openPreview(date);
+    }
+  });
 
   // タイムラインの [[リンク]] からノートへ飛ぶ（キャプチャと知識をつなぐ）
   const handleWikilinkClick = async (title: string) => {

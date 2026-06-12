@@ -39,6 +39,7 @@ const ICONS = {
   "text-outdent": () => import("@phosphor-icons/core/assets/regular/text-outdent.svg?raw"),
   "code-block": () => import("@phosphor-icons/core/assets/regular/code-block.svg?raw"),
   minus: () => import("@phosphor-icons/core/assets/regular/minus.svg?raw"),
+  "magnifying-glass": () => import("@phosphor-icons/core/assets/regular/magnifying-glass.svg?raw"),
 } as const;
 
 export type IconName = keyof typeof ICONS;
