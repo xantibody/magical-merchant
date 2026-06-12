@@ -67,7 +67,10 @@ fn walk_dir(root: &Path, current: &Path, files: &mut Vec<LocalFile>) -> Result<(
 }
 
 fn is_excluded(file_name: &str) -> bool {
-    file_name.contains(".sync-conflict-") || file_name == ".sync-state.json"
+    file_name.contains(".sync-conflict-")
+        || file_name == ".sync-state.json"
+        // クラッシュで残ったアトミック書き込みの一時ファイル
+        || file_name.starts_with(".sync-tmp-")
 }
 
 fn compute_hash(content: &[u8]) -> String {

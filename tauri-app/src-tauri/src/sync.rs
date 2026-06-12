@@ -20,6 +20,34 @@ pub struct SyncStatusInfo {
     pub last_error: Option<String>,
 }
 
+/// フロントが「設定へ誘導」「再試行」などを出し分けられるよう、
+/// エラーを kind 付きで返す
+#[derive(Debug, Clone, Serialize)]
+pub struct SyncErrorInfo {
+    pub kind: &'static str,
+    pub message: String,
+}
+
+impl SyncErrorInfo {
+    fn new(kind: &'static str, message: impl Into<String>) -> Self {
+        Self {
+            kind,
+            message: message.into(),
+        }
+    }
+}
+
+fn classify_core_error(e: &CoreError) -> SyncErrorInfo {
+    match e {
+        CoreError::NotAuthenticated => SyncErrorInfo::new(
+            "notAuthenticated",
+            "The server rejected the login. Log in again from Settings.",
+        ),
+        CoreError::Network(m) => SyncErrorInfo::new("network", format!("Network error: {m}")),
+        other => SyncErrorInfo::new("other", other.to_string()),
+    }
+}
+
 pub struct AppSyncState {
     pub is_syncing: AtomicBool,
     pub last_synced_at: Mutex<Option<DateTime<Utc>>>,
@@ -46,10 +74,25 @@ impl R2SyncClient {
     pub fn new(base_url: String, token: String) -> Self {
         Self {
             http: reqwest::Client::new(),
-            base_url,
+            // 末尾スラッシュがあると "//files" になり Worker 側で 400 になる
+            base_url: base_url.trim_end_matches('/').to_string(),
             token,
         }
     }
+}
+
+/// 401/404 以外の非成功ステータスをエラーにする。
+/// これを怠ると失敗したアップロードを成功扱いで同期状態に記録したり、
+/// エラーレスポンスのボディをノート本文としてローカルに書き込んだりしてしまう。
+fn check_status(resp: reqwest::Response, context: &str) -> Result<reqwest::Response, CoreError> {
+    let status = resp.status();
+    if status == reqwest::StatusCode::UNAUTHORIZED {
+        return Err(CoreError::NotAuthenticated);
+    }
+    if !status.is_success() {
+        return Err(CoreError::Sync(format!("{context}: HTTP {status}")));
+    }
+    Ok(resp)
 }
 
 #[derive(serde::Deserialize)]
@@ -75,9 +118,7 @@ impl SyncClient for R2SyncClient {
             .await
             .map_err(|e| CoreError::Network(e.to_string()))?;
 
-        if resp.status() == reqwest::StatusCode::UNAUTHORIZED {
-            return Err(CoreError::NotAuthenticated);
-        }
+        let resp = check_status(resp, "list")?;
 
         let body: ListResponse = resp
             .json()
@@ -109,13 +150,11 @@ impl SyncClient for R2SyncClient {
             .await
             .map_err(|e| CoreError::Network(e.to_string()))?;
 
-        if resp.status() == reqwest::StatusCode::UNAUTHORIZED {
-            return Err(CoreError::NotAuthenticated);
-        }
-
         if resp.status() == reqwest::StatusCode::NOT_FOUND {
             return Err(CoreError::NotFound(key.to_string()));
         }
+
+        let resp = check_status(resp, "download")?;
 
         resp.bytes()
             .await
@@ -139,9 +178,7 @@ impl SyncClient for R2SyncClient {
             .await
             .map_err(|e| CoreError::Network(e.to_string()))?;
 
-        if resp.status() == reqwest::StatusCode::UNAUTHORIZED {
-            return Err(CoreError::NotAuthenticated);
-        }
+        check_status(resp, "upload")?;
 
         Ok(())
     }
@@ -155,11 +192,18 @@ impl SyncClient for R2SyncClient {
             .await
             .map_err(|e| CoreError::Network(e.to_string()))?;
 
-        if resp.status() == reqwest::StatusCode::UNAUTHORIZED {
-            return Err(CoreError::NotAuthenticated);
-        }
+        check_status(resp, "delete")?;
 
         Ok(())
+    }
+}
+
+/// panic やキャンセルでも is_syncing を確実に false へ戻すガード
+struct SyncingGuard<'a>(&'a AtomicBool);
+
+impl Drop for SyncingGuard<'_> {
+    fn drop(&mut self) {
+        self.0.store(false, Ordering::SeqCst);
     }
 }
 
@@ -167,18 +211,17 @@ impl SyncClient for R2SyncClient {
 pub async fn sync_start(
     handle: AppHandle,
     state: State<'_, AppSyncState>,
-) -> Result<SyncResult, String> {
+) -> Result<SyncResult, SyncErrorInfo> {
     if state
         .is_syncing
         .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
         .is_err()
     {
-        return Err("Sync already in progress".to_string());
+        return Err(SyncErrorInfo::new("busy", "Sync already in progress"));
     }
+    let _guard = SyncingGuard(&state.is_syncing);
 
     let result = do_sync(&handle).await;
-
-    state.is_syncing.store(false, Ordering::SeqCst);
 
     match &result {
         Ok(sync_result) => {
@@ -187,7 +230,7 @@ pub async fn sync_start(
             let _ = handle.emit(EVENT_SYNC_COMPLETE, sync_result);
         }
         Err(err) => {
-            *state.last_error.lock().unwrap() = Some(err.clone());
+            *state.last_error.lock().unwrap() = Some(err.message.clone());
             let _ = handle.emit(EVENT_SYNC_ERROR, err);
         }
     }
@@ -195,23 +238,36 @@ pub async fn sync_start(
     result
 }
 
-async fn do_sync(handle: &AppHandle) -> Result<SyncResult, String> {
-    let base_dir = handle.path().app_data_dir().map_err(|e| e.to_string())?;
+async fn do_sync(handle: &AppHandle) -> Result<SyncResult, SyncErrorInfo> {
+    let base_dir = handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| SyncErrorInfo::new("other", e.to_string()))?;
     let config = auth::SyncConfig::load(&base_dir);
 
     if !config.is_configured() {
-        return Err("Sync not configured".to_string());
+        return Err(SyncErrorInfo::new(
+            "notConfigured",
+            "Sync is not set up. Add your Workers URL in Settings.",
+        ));
     }
 
-    let token = auth::get_token()?.ok_or("Not authenticated")?;
+    let token = auth::get_token()
+        .map_err(|e| SyncErrorInfo::new("other", e))?
+        .ok_or_else(|| {
+            SyncErrorInfo::new("notAuthenticated", "Not logged in. Log in from Settings.")
+        })?;
     if !auth::is_token_valid(&token) {
-        return Err("Token expired. Please re-authenticate.".to_string());
+        return Err(SyncErrorInfo::new(
+            "notAuthenticated",
+            "Login expired. Log in again from Settings.",
+        ));
     }
 
     let client = R2SyncClient::new(config.workers_url, token);
     let engine = magical_merchant_core::sync::SyncEngine::new(client, base_dir);
 
-    engine.sync().await.map_err(|e| e.to_string())
+    engine.sync().await.map_err(|e| classify_core_error(&e))
 }
 
 #[tauri::command]
@@ -221,4 +277,29 @@ pub fn sync_status(state: State<'_, AppSyncState>) -> Result<SyncStatusInfo, Str
         last_synced_at: *state.last_synced_at.lock().unwrap(),
         last_error: state.last_error.lock().unwrap().clone(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn classify_not_authenticated_for_settings_guidance() {
+        let info = classify_core_error(&CoreError::NotAuthenticated);
+        assert_eq!(info.kind, "notAuthenticated");
+    }
+
+    #[test]
+    fn classify_network_errors() {
+        let info = classify_core_error(&CoreError::Network("timeout".into()));
+        assert_eq!(info.kind, "network");
+        assert!(info.message.contains("timeout"));
+    }
+
+    #[test]
+    fn classify_other_errors_keep_message() {
+        let info = classify_core_error(&CoreError::Sync("boom".into()));
+        assert_eq!(info.kind, "other");
+        assert!(info.message.contains("boom"));
+    }
 }

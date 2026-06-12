@@ -45,9 +45,23 @@ impl<C: SyncClient> SyncEngine<C> {
         let mut state = SyncState::load(&self.base_dir)?;
         let local_files = scan::scan_local_files(&self.base_dir)?;
         let remote_files = self.client.list_remote().await?;
-        let actions = diff::compute(&local_files, &remote_files, &state);
 
         let mut result = SyncResult::default();
+
+        // リモートのキーは信頼できないので、data/ の外に書き込めるキーを拒否する
+        let remote_files: Vec<client::RemoteFile> = remote_files
+            .into_iter()
+            .filter(|f| {
+                if is_safe_key(&f.key) {
+                    true
+                } else {
+                    result.errors.push(format!("unsafe remote key: {}", f.key));
+                    false
+                }
+            })
+            .collect();
+
+        let actions = diff::compute(&local_files, &remote_files, &state);
 
         // Build lookup maps
         let local_map: std::collections::HashMap<&str, &scan::LocalFile> =
@@ -59,9 +73,14 @@ impl<C: SyncClient> SyncEngine<C> {
         for action in &actions {
             match action {
                 SyncAction::DownloadNew { key } | SyncAction::DownloadModified { key } => {
-                    match self.execute_download(key, &mut state).await {
-                        Ok(()) => result.downloaded += 1,
-                        Err(e) => result.errors.push(format!("download {key}: {e}")),
+                    if let Some(remote) = remote_map.get(key.as_str()) {
+                        match self
+                            .execute_download(key, remote.last_modified, &mut state)
+                            .await
+                        {
+                            Ok(()) => result.downloaded += 1,
+                            Err(e) => result.errors.push(format!("download {key}: {e}")),
+                        }
                     }
                 }
                 SyncAction::DeleteLocal { key } => {
@@ -109,31 +128,38 @@ impl<C: SyncClient> SyncEngine<C> {
             }
         }
 
+        // ローカルにもリモートにも存在しないファイルのレコードは不要なので除去する
+        state.files.retain(|k, _| {
+            local_map.contains_key(k.as_str()) || remote_map.contains_key(k.as_str())
+        });
+
         state.last_sync = Some(Utc::now());
         state.save(&self.base_dir)?;
 
         Ok(result)
     }
 
-    async fn execute_download(&self, key: &str, state: &mut SyncState) -> Result<(), CoreError> {
+    async fn execute_download(
+        &self,
+        key: &str,
+        remote_modified: chrono::DateTime<Utc>,
+        state: &mut SyncState,
+    ) -> Result<(), CoreError> {
         let content = self.client.download(key).await?;
         let path = self.data_path(key);
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
         }
-        fs::write(&path, &content)?;
+        write_atomic(&path, &content)?;
 
-        let metadata = fs::metadata(&path)?;
-        let modified = metadata
-            .modified()
-            .unwrap_or(std::time::SystemTime::UNIX_EPOCH)
-            .into();
         let hash = compute_hash(&content);
 
+        // リモートの時刻を記録しないと、次回の diff で remote_changed と誤判定され
+        // 同じファイルを毎回再ダウンロードしてしまう
         state.files.insert(
             key.to_string(),
             FileSyncRecord {
-                last_synced_modified: modified,
+                last_synced_modified: remote_modified,
                 content_hash: hash,
             },
         );
@@ -203,7 +229,7 @@ impl<C: SyncClient> SyncEngine<C> {
             ConflictResolution::KeepLocal => {
                 // Save remote as conflict copy, keep local as-is
                 let remote_content = self.client.download(key).await?;
-                fs::write(&conflict_path, &remote_content)?;
+                write_atomic(&conflict_path, &remote_content)?;
 
                 // Upload local version
                 let local_path = self.data_path(key);
@@ -224,11 +250,11 @@ impl<C: SyncClient> SyncEngine<C> {
                 // Save local as conflict copy
                 let local_path = self.data_path(key);
                 let local_content = fs::read(&local_path)?;
-                fs::write(&conflict_path, &local_content)?;
+                write_atomic(&conflict_path, &local_content)?;
 
                 // Download remote version
                 let remote_content = self.client.download(key).await?;
-                fs::write(&local_path, &remote_content)?;
+                write_atomic(&local_path, &remote_content)?;
 
                 let hash = compute_hash(&remote_content);
                 state.files.insert(
@@ -253,6 +279,28 @@ fn compute_hash(content: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(content);
     format!("{:x}", hasher.finalize())
+}
+
+/// data/ ディレクトリ配下に収まる相対パスだけを許可する
+fn is_safe_key(key: &str) -> bool {
+    use std::path::Component;
+
+    !key.is_empty()
+        && !key.contains('\\')
+        && !key.contains('\0')
+        && std::path::Path::new(key)
+            .components()
+            .all(|c| matches!(c, Component::Normal(_)))
+}
+
+/// 一時ファイルに書いてから rename することで、書き込み途中のクラッシュで
+/// 既存ファイルが壊れた状態にならないようにする
+fn write_atomic(path: &std::path::Path, content: &[u8]) -> Result<(), CoreError> {
+    let file_name = path.file_name().and_then(|n| n.to_str()).unwrap_or("file");
+    let tmp = path.with_file_name(format!(".sync-tmp-{file_name}"));
+    fs::write(&tmp, content)?;
+    fs::rename(&tmp, path)?;
+    Ok(())
 }
 
 #[cfg(test)]
@@ -406,6 +454,70 @@ mod tests {
         // Should have shared.md (winner) and shared.sync-conflict-*.md (loser)
         assert!(entries.iter().any(|n| n == "shared.md"));
         assert!(entries.iter().any(|n| n.contains("sync-conflict")));
+    }
+
+    #[tokio::test]
+    async fn sync_rejects_remote_keys_with_path_traversal() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join("data")).unwrap();
+
+        let ts = Utc.with_ymd_and_hms(2026, 4, 22, 12, 0, 0).unwrap();
+        let client = MockClient::new()
+            .with_file("../evil.md", b"pwned", ts)
+            .with_file("/abs/evil.md", b"pwned", ts)
+            .with_file("notes/ok.md", b"fine", ts);
+        let engine = SyncEngine::new(client, dir.path().to_path_buf());
+        let result = engine.sync().await.unwrap();
+
+        // 安全なキーだけがダウンロードされ、data/ の外には何も書かれない
+        assert_eq!(result.downloaded, 1);
+        assert!(dir.path().join("data/notes/ok.md").exists());
+        assert!(!dir.path().join("evil.md").exists());
+        assert_eq!(result.errors.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn sync_does_not_redownload_unchanged_remote_file() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join("data")).unwrap();
+
+        let ts = Utc.with_ymd_and_hms(2026, 4, 22, 12, 0, 0).unwrap();
+        let client = MockClient::new().with_file("notes/remote.md", b"remote content", ts);
+        let engine = SyncEngine::new(client, dir.path().to_path_buf());
+
+        let first = engine.sync().await.unwrap();
+        assert_eq!(first.downloaded, 1);
+
+        let second = engine.sync().await.unwrap();
+        assert_eq!(
+            second.downloaded, 0,
+            "unchanged remote file must not be re-downloaded"
+        );
+    }
+
+    #[tokio::test]
+    async fn sync_prunes_stale_state_records() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join("data")).unwrap();
+
+        // ローカルにもリモートにも存在しないファイルのレコードが残っている
+        let ts = Utc.with_ymd_and_hms(2026, 4, 22, 10, 0, 0).unwrap();
+        let mut state = SyncState::default();
+        state.files.insert(
+            "notes/ghost.md".to_string(),
+            FileSyncRecord {
+                last_synced_modified: ts,
+                content_hash: "h".to_string(),
+            },
+        );
+        state.save(dir.path()).unwrap();
+
+        let client = MockClient::new();
+        let engine = SyncEngine::new(client, dir.path().to_path_buf());
+        engine.sync().await.unwrap();
+
+        let state = SyncState::load(dir.path()).unwrap();
+        assert!(!state.files.contains_key("notes/ghost.md"));
     }
 
     #[tokio::test]
