@@ -1,9 +1,14 @@
 pub mod error;
 pub mod repository;
+mod search;
 mod summary;
+mod title;
+mod wikilink;
 
 pub use repository::Notes;
+pub use search::SearchHit;
 pub use summary::Summary as NoteSummary;
+pub use wikilink::extract_wikilinks;
 
 use std::path::{Path, PathBuf};
 
@@ -46,6 +51,21 @@ pub fn read_note_by_filename(
 
 pub fn delete_note(base_dir: &Path, filename: &NoteFilename) -> Result<(), CoreError> {
     Notes::new(base_dir.to_path_buf()).delete(filename)
+}
+
+pub fn search_notes(base_dir: &Path, query: &str) -> Result<Vec<SearchHit>, CoreError> {
+    search::search(base_dir, query)
+}
+
+pub fn resolve_wikilink(base_dir: &Path, title: &str) -> Result<Option<String>, CoreError> {
+    wikilink::resolve(base_dir, title)
+}
+
+pub fn list_backlinks(
+    base_dir: &Path,
+    filename: &NoteFilename,
+) -> Result<Vec<NoteSummary>, CoreError> {
+    wikilink::backlinks(base_dir, filename)
 }
 
 #[cfg(test)]
