@@ -70,6 +70,8 @@ Notes link to each other Obsidian-style, but with zero capture friction:
 - **Title**: derived from a note's first heading (or first non-empty line) — there is no title field to fill in
 - **`[[Title]]`**: resolves by exact title match in `core`; duplicates resolve to the oldest note so links stay stable
 - **Backlinks**: "Linked from" list at the bottom of note preview
+- **Unlinked mentions**: "Mentioned in" list — notes whose text contains this note's title without a wikilink; never overlaps with backlinks
+- **Timeline integration**: `[[links]]` in timeline entries are clickable and jump to the note (`/notes?note=<filename>`), so quick capture feeds the knowledge base
 - **Search**: case-insensitive full-text scan in `core` — no index, no extra dependencies
 
 Design constraints (do not violate):
