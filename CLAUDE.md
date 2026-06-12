@@ -71,8 +71,9 @@ Notes link to each other Obsidian-style, but with zero capture friction:
 - **`[[Title]]`**: resolves by exact title match in `core`; duplicates resolve to the oldest note so links stay stable
 - **Backlinks**: "Linked from" list at the bottom of note preview
 - **Unlinked mentions**: "Mentioned in" list — notes whose text contains this note's title without a wikilink; never overlaps with backlinks
-- **Timeline integration**: `[[links]]` in timeline entries are clickable and jump to the note (`/notes?note=<filename>`), so quick capture feeds the knowledge base
-- **Search**: case-insensitive full-text scan in `core` — no index, no extra dependencies
+- **Timeline integration**: `[[links]]` in timeline and task bodies are clickable and jump to the note (`/notes?note=<filename>`), so every surface feeds the knowledge base
+- **Search**: case-insensitive full-text scan in `core` (notes and timeline; the device-context JSON is excluded) — no index, no extra dependencies
+- **Command palette (Cmd+K / Ctrl+K)**: one overlay for fuzzy title jump, full-text hits, and timeline matches; zero permanent chrome. Timeline results route via `/?date=<YYYY-MM-DD>`
 
 Design constraints (do not violate):
 
