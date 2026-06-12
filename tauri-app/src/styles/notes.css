@@ -9,11 +9,12 @@
 .tags-input {
   padding: var(--size-1) var(--size-2);
   border: 1px solid var(--app-border);
-  border-radius: var(--radius-2);
+  border-radius: var(--radius-round);
   background: var(--app-surface);
   color: var(--app-text);
   font-size: var(--font-size-0);
   outline: none;
+  transition: border-color 150ms var(--ease-2);
 }
 
 .tags-input:focus {
@@ -30,18 +31,23 @@
 }
 
 .notes-search-input {
-  margin: var(--size-2) var(--size-3) 0;
-  padding: var(--size-1) var(--size-2);
+  margin: var(--size-2) var(--size-3) var(--size-1);
+  padding: var(--size-1) var(--size-3);
   border: 1px solid var(--app-border);
-  border-radius: var(--radius-2);
+  border-radius: var(--radius-round);
   background: var(--app-surface);
   color: var(--app-text);
   font-size: var(--font-size-1);
   outline: none;
+  transition: border-color 150ms var(--ease-2);
 }
 
 .notes-search-input:focus {
   border-color: var(--app-accent);
+}
+
+.notes-search-input::placeholder {
+  color: var(--app-text-2);
 }
 
 .search-snippet {
@@ -52,14 +58,24 @@
   white-space: nowrap;
 }
 
+/* Title-first hierarchy: title prominent, body preview and meta recede */
 .note-list-item {
   display: flex;
   flex-direction: column;
-  gap: var(--size-1);
+  gap: 2px;
+}
+
+.note-title-text {
+  font-size: var(--font-size-1);
+  font-weight: var(--font-weight-6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .note-preview-text {
-  font-size: var(--font-size-1);
+  font-size: var(--font-size-0);
+  color: var(--app-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -69,7 +85,7 @@
   display: flex;
   gap: var(--size-2);
   font-size: var(--font-size-0);
-  color: var(--app-text-muted);
+  color: var(--app-text-2);
 }
 
 .note-tags {
@@ -78,12 +94,18 @@
   white-space: nowrap;
 }
 
-/* Note preview */
+/* Note preview — comfortable reading measure */
 
 .note-preview-container {
   flex: 1;
   overflow-y: auto;
-  padding: var(--size-3);
+  padding: var(--size-4) var(--size-3) var(--size-8);
+}
+
+.note-preview-container .markdown-preview,
+.note-preview-container .backlinks {
+  max-width: 70ch;
+  margin-inline: auto;
 }
 
 /* Backlinks */
@@ -97,8 +119,10 @@
 .backlinks-heading {
   margin: 0 0 var(--size-2);
   font-size: var(--font-size-0);
-  font-weight: var(--font-weight-5);
-  color: var(--app-text-muted);
+  font-weight: var(--font-weight-6);
+  letter-spacing: var(--font-letterspacing-2);
+  text-transform: uppercase;
+  color: var(--app-text-2);
 }
 
 .backlink-item {
@@ -112,12 +136,17 @@
   cursor: pointer;
 }
 
+.backlink-item:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .status-indicator {
   position: absolute;
   bottom: var(--size-3);
   left: calc(var(--size-3) + 6em);
   font-size: var(--font-size-0);
-  color: var(--app-text-muted);
+  color: var(--app-text-2);
   white-space: nowrap;
   pointer-events: none;
 }

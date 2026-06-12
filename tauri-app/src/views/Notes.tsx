@@ -328,7 +328,9 @@ export default function Notes() {
                           class="browse-list-item note-list-item"
                           onClick={() => openPreview(note)}
                         >
-                          <span class="note-preview-text">{note.preview || "(empty)"}</span>
+                          <span class="note-title-text">
+                            {note.title || note.preview || "(untitled)"}
+                          </span>
                           <span class="note-meta">
                             <Show when={note.time}>
                               <span class="note-time">{formatTime(note.time)}</span>
@@ -351,7 +353,7 @@ export default function Notes() {
                           class="browse-list-item note-list-item"
                           onClick={() => openPreviewByFilename(hit.filename)}
                         >
-                          <span class="note-preview-text">{hit.title || "(untitled)"}</span>
+                          <span class="note-title-text">{hit.title || "(untitled)"}</span>
                           <span class="search-snippet">{hit.snippet}</span>
                         </button>
                       )}

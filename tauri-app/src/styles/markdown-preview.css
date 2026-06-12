@@ -11,16 +11,27 @@
 .markdown-preview h1 {
   font-size: var(--font-size-5);
   font-weight: var(--font-weight-7);
+  line-height: var(--font-lineheight-1);
+  letter-spacing: var(--font-letterspacing-0);
 }
 
 .markdown-preview h2 {
   font-size: var(--font-size-4);
   font-weight: var(--font-weight-6);
+  line-height: var(--font-lineheight-1);
 }
 
 .markdown-preview h3 {
   font-size: var(--font-size-3);
   font-weight: var(--font-weight-6);
+  line-height: var(--font-lineheight-2);
+}
+
+/* Headings get extra air above when following content */
+.markdown-preview * + h1,
+.markdown-preview * + h2,
+.markdown-preview * + h3 {
+  margin-top: var(--size-5);
 }
 
 .markdown-preview code {
@@ -44,9 +55,27 @@
 }
 
 .markdown-preview blockquote {
-  border-left: 3px solid var(--app-border);
+  border-left: 3px solid var(--app-accent);
   padding-left: var(--size-3);
   color: var(--app-text-muted);
+  font-style: italic;
+}
+
+.markdown-preview table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.markdown-preview th,
+.markdown-preview td {
+  border: 1px solid var(--app-border);
+  padding: var(--size-1) var(--size-2);
+  text-align: left;
+}
+
+.markdown-preview th {
+  background: var(--app-surface-2);
+  font-weight: var(--font-weight-6);
 }
 
 .markdown-preview ul,
@@ -57,11 +86,20 @@
 .markdown-preview a {
   color: var(--app-accent);
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .markdown-preview a.wikilink {
   text-decoration: none;
+  padding: 0 2px;
+  margin: 0 -2px;
   border-bottom: 1px solid var(--app-accent);
+  border-radius: var(--radius-1);
+  transition: background 150ms var(--ease-2);
+}
+
+.markdown-preview a.wikilink:hover {
+  background: var(--app-accent-soft);
 }
 
 .markdown-preview a.wikilink--unresolved {

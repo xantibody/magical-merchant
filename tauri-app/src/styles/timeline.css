@@ -21,15 +21,17 @@
 .timeline-entries {
   display: flex;
   flex-direction: column;
-  gap: var(--size-1);
+  gap: var(--size-2);
   flex: 1;
   overflow-y: auto;
 }
 
+/* Entry cards float gently on the canvas */
 .timeline-entry {
   padding: var(--size-2) var(--size-3);
-  background: var(--app-surface-2);
-  border-radius: var(--radius-2);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-3);
   font-size: var(--font-size-1);
   line-height: var(--font-lineheight-3);
 }
@@ -41,6 +43,9 @@
 
 .timeline-entry-time {
   color: var(--app-text-2);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-0);
+  line-height: var(--font-lineheight-3);
   white-space: nowrap;
 }
 
@@ -71,13 +76,15 @@
   opacity: 0.7;
 }
 
-/* Browse list (shared for date list) */
+/* Browse list — rounded rows, no divider lines */
 
 .browse-list {
   display: flex;
   flex-direction: column;
+  gap: 2px;
   flex: 1;
   overflow-y: auto;
+  padding: var(--size-1);
 }
 
 .browse-list-item {
@@ -86,19 +93,16 @@
   padding: var(--size-2) var(--size-3);
   background: none;
   border: none;
-  border-bottom: 1px solid var(--app-border);
+  border-radius: var(--radius-2);
   color: var(--app-text);
   font-size: var(--font-size-1);
   text-align: left;
   cursor: pointer;
+  transition: background 150ms var(--ease-2);
 }
 
 .browse-list-item:hover {
   background: var(--app-surface-2);
-}
-
-.browse-list-item:last-child {
-  border-bottom: none;
 }
 
 /* Preview */

@@ -35,10 +35,10 @@
 
 .btn-danger {
   padding: var(--size-1) var(--size-3);
-  background: var(--red-7);
-  color: var(--gray-0);
+  background: var(--app-danger);
+  color: var(--app-accent-contrast);
   border: none;
-  border-radius: var(--radius-2);
+  border-radius: var(--radius-round);
   cursor: pointer;
   font-size: var(--font-size-1);
 }

@@ -1,32 +1,57 @@
 @import "open-props/open-props.min.css";
 @import "open-props/normalize.min.css";
 
+/*
+ * Semantic tokens. Palette: Nightfox Dawnfox (light) / Duskfox (dark) —
+ * the one place raw color values are allowed; components must use tokens.
+ */
 :root {
-  --app-surface: var(--gray-0);
-  --app-text: var(--gray-9);
-  --app-text-muted: var(--gray-6);
-  --app-accent: var(--blue-7);
-  --app-border: var(--gray-3);
-  --app-surface-2: var(--gray-1);
+  --app-bg: #faf4ed;
+  --app-surface: #fffaf3;
+  --app-surface-2: #f2e9e1;
+  --app-text: #575279;
+  --app-text-muted: #797593;
+  --app-text-2: #9893a5;
+  --app-border: #dfdad9;
+  --app-accent: #907aa9;
+  --app-accent-contrast: #faf4ed;
+  --app-accent-soft: rgb(144 122 169 / 14%);
+  --app-danger: #b4637a;
+  --app-success: #618774;
+  --app-warning: #ea9d34;
 }
 
 :root[data-theme="dark"] {
-  --app-surface: var(--gray-9);
-  --app-text: var(--gray-1);
-  --app-text-muted: var(--gray-5);
-  --app-accent: var(--blue-4);
-  --app-border: var(--gray-7);
-  --app-surface-2: var(--gray-8);
+  --app-bg: #191726;
+  --app-surface: #232136;
+  --app-surface-2: #2d2a45;
+  --app-text: #e0def4;
+  --app-text-muted: #aeabc7;
+  --app-text-2: #817c9c;
+  --app-border: #373354;
+  --app-accent: #c4a7e7;
+  --app-accent-contrast: #191726;
+  --app-accent-soft: rgb(196 167 231 / 16%);
+  --app-danger: #eb6f92;
+  --app-success: #a3be8c;
+  --app-warning: #f6c177;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --app-surface: var(--gray-9);
-    --app-text: var(--gray-1);
-    --app-text-muted: var(--gray-5);
-    --app-accent: var(--blue-4);
-    --app-border: var(--gray-7);
-    --app-surface-2: var(--gray-8);
+    --app-bg: #191726;
+    --app-surface: #232136;
+    --app-surface-2: #2d2a45;
+    --app-text: #e0def4;
+    --app-text-muted: #aeabc7;
+    --app-text-2: #817c9c;
+    --app-border: #373354;
+    --app-accent: #c4a7e7;
+    --app-accent-contrast: #191726;
+    --app-accent-soft: rgb(196 167 231 / 16%);
+    --app-danger: #eb6f92;
+    --app-success: #a3be8c;
+    --app-warning: #f6c177;
   }
 }
 
@@ -36,8 +61,33 @@ html {
 }
 
 body {
-  background: var(--app-surface);
+  background: var(--app-bg);
   color: var(--app-text);
   font-family: var(--font-sans);
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--app-accent-soft);
+}
+
+:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 2px;
+}
+
+/* Slim, quiet scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--app-border) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

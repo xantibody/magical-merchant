@@ -178,6 +178,18 @@ export default function CommandPalette(props: CommandPaletteProps) {
               </For>
             </Show>
           </div>
+          <div class="palette-hints">
+            <span>
+              <kbd>↑</kbd>
+              <kbd>↓</kbd>移動
+            </span>
+            <span>
+              <kbd>↵</kbd> 開く
+            </span>
+            <span>
+              <kbd>esc</kbd> 閉じる
+            </span>
+          </div>
         </div>
       </div>
     </Show>

@@ -22,6 +22,13 @@
   cursor: text;
 }
 
+/* Typora 流: 書く面は中央の快適な行幅に揃える */
+.milkdown-editor .ProseMirror {
+  max-width: 70ch;
+  margin-inline: auto;
+  width: 100%;
+}
+
 .milkdown-editor .milkdown {
   display: flex;
   flex-direction: column;

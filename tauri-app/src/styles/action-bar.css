@@ -40,6 +40,7 @@
   }
 }
 
+/* Pill buttons that lift on hover */
 .action-bar button {
   display: flex;
   align-items: center;
@@ -47,19 +48,38 @@
   gap: var(--size-1);
   padding: var(--size-2) var(--size-3);
   background: var(--app-accent);
-  color: var(--gray-0);
+  color: var(--app-accent-contrast);
   border: none;
-  border-radius: var(--radius-2);
+  border-radius: var(--radius-round);
   cursor: pointer;
   font-size: var(--font-size-0);
+  font-weight: var(--font-weight-6);
   box-shadow: var(--shadow-2);
+  transition:
+    transform 150ms var(--ease-2),
+    box-shadow 150ms var(--ease-2),
+    filter 150ms var(--ease-2);
 }
 
 .action-bar button:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-3);
+}
+
+.action-bar button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-1);
 }
 
 .action-bar button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow-2);
+}
+
+/* Inputs that live inside the action bar stay rectangular but soft */
+.action-bar .tags-input {
+  box-shadow: var(--shadow-2);
 }

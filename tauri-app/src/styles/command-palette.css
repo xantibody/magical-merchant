@@ -8,7 +8,8 @@
   justify-content: center;
   align-items: flex-start;
   padding-top: 12vh;
-  background: rgb(0 0 0 / 30%);
+  background: rgb(0 0 0 / 25%);
+  backdrop-filter: blur(2px);
 }
 
 .palette {
@@ -18,9 +19,21 @@
   flex-direction: column;
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: var(--radius-3);
-  box-shadow: var(--shadow-4);
+  border-radius: var(--radius-4);
+  box-shadow: var(--shadow-5);
   overflow: hidden;
+  animation: palette-in 150ms var(--ease-out-3);
+}
+
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--size-2))) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .palette-input-row {
@@ -70,7 +83,7 @@
 }
 
 .palette-item--selected {
-  background: var(--app-border);
+  background: var(--app-accent-soft);
 }
 
 .palette-item-label {
@@ -87,4 +100,23 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Keyboard hints footer */
+.palette-hints {
+  display: flex;
+  gap: var(--size-3);
+  padding: var(--size-1) var(--size-3);
+  border-top: 1px solid var(--app-border);
+  color: var(--app-text-2);
+  font-size: var(--font-size-0);
+}
+
+.palette-hints kbd {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 0 var(--size-1);
+  background: var(--app-surface-2);
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-1);
 }

@@ -38,3 +38,6 @@ plans/
 
 # Wrangler local secrets
 .dev.vars
+
+# UI screenshot tool output
+shot-*.png
