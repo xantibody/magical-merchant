@@ -58,6 +58,9 @@
 html {
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* 横向き時に本文が勝手に拡大されるのを防ぐ */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -66,6 +69,29 @@ body {
   font-family: var(--font-sans);
   margin: 0;
   -webkit-font-smoothing: antialiased;
+  /* iOS Safari のゴムバンド全体バウンスを抑える */
+  overscroll-behavior: none;
+}
+
+/* タップ時のグレーフラッシュを消す（フォーカスリングで可視性は担保） */
+button,
+a,
+input,
+textarea,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * iOS はフォーカスした入力の font-size が 16px 未満だと自動ズームする。
+ * タッチ端末では全テキスト入力に 16px (= --font-size-1) の下限を課す。
+ */
+@media (hover: none) {
+  input,
+  textarea,
+  select {
+    font-size: max(var(--font-size-1), 1em);
+  }
 }
 
 ::selection {

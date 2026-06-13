@@ -5,6 +5,15 @@
   cursor: text;
   border: none;
   outline: none;
+  /* スクロールがチェーンして body をバウンスさせない */
+  overscroll-behavior: contain;
+}
+
+/* タッチ端末では常時表示のツールバーの裏に最終行が隠れないよう余白を確保 */
+@media (hover: none) {
+  .milkdown-editor .ProseMirror {
+    padding-bottom: var(--size-10);
+  }
 }
 
 .milkdown-editor .milkdown,

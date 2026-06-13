@@ -180,6 +180,7 @@
   overflow: auto;
   padding: var(--size-3);
   position: relative;
+  overscroll-behavior: contain;
 }
 
 .view--flush {

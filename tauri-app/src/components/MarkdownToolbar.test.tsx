@@ -21,7 +21,7 @@ describe("MarkdownToolbar", () => {
     expect(screen.queryByRole("toolbar")).toBeNull();
   });
 
-  it("renders 4 buttons when editor is provided", () => {
+  it("renders the full set of formatting buttons when editor is provided", () => {
     const editor = createMockEditor();
     render(() => <MarkdownToolbar editor={editor} />);
 
@@ -29,19 +29,21 @@ describe("MarkdownToolbar", () => {
     expect(toolbar).toBeDefined();
 
     const buttons = screen.getAllByRole("button");
-    expect(buttons).toHaveLength(4);
+    expect(buttons).toHaveLength(13);
 
-    expect(screen.getByLabelText("Outdent")).toBeDefined();
-    expect(screen.getByLabelText("Indent")).toBeDefined();
-    expect(screen.getByLabelText("Code block")).toBeDefined();
-    expect(screen.getByLabelText("Horizontal rule")).toBeDefined();
+    // 各グループの代表ボタンが揃っている
+    expect(screen.getByLabelText("元に戻す")).toBeDefined();
+    expect(screen.getByLabelText("見出し")).toBeDefined();
+    expect(screen.getByLabelText("太字")).toBeDefined();
+    expect(screen.getByLabelText("インデント")).toBeDefined();
+    expect(screen.getByLabelText("コードブロック")).toBeDefined();
   });
 
   it("calls editor.action when a button is clicked", () => {
     const editor = createMockEditor();
     render(() => <MarkdownToolbar editor={editor} />);
 
-    fireEvent.click(screen.getByLabelText("Outdent"));
+    fireEvent.click(screen.getByLabelText("太字"));
 
     expect(editor.action).toHaveBeenCalled();
   });
