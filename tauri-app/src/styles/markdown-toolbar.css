@@ -1,20 +1,34 @@
 .markdown-toolbar {
   display: none;
 }
+
 @media (hover: none) {
   .markdown-toolbar {
     display: flex;
+    align-items: center;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 150;
-    gap: var(--size-1);
+    gap: 2px;
     padding: var(--size-1) var(--size-2);
-    background: var(--app-surface-2);
+    /* 仮想キーボードがない時はホームバー分の余白を確保 */
+    padding-bottom: max(var(--size-1), env(safe-area-inset-bottom, 0px));
+    background: var(--app-surface);
     border-top: 1px solid var(--app-border);
+    box-shadow: var(--shadow-3);
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* 横スクロールはするが pull-to-refresh 等の縦ジェスチャは握らない */
+    touch-action: pan-x;
+    overscroll-behavior: contain;
+  }
+
+  .markdown-toolbar::-webkit-scrollbar {
+    display: none;
   }
 
   .markdown-toolbar button {
@@ -22,16 +36,30 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    padding: var(--size-2) var(--size-3);
+    /* 44px の最小タッチターゲット（Apple HIG / Material 推奨） */
+    min-width: var(--size-8);
+    min-height: var(--size-8);
+    padding: var(--size-2);
     background: none;
     border: none;
     border-radius: var(--radius-2);
     color: var(--app-text-muted);
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 100ms var(--ease-2);
   }
 
   .markdown-toolbar button:active {
-    color: var(--app-text);
-    background: var(--app-surface);
+    color: var(--app-accent);
+    background: var(--app-accent-soft);
+  }
+
+  .markdown-toolbar-divider {
+    flex-shrink: 0;
+    align-self: center;
+    width: 1px;
+    height: var(--size-5);
+    margin: 0 var(--size-1);
+    background: var(--app-border);
   }
 }
