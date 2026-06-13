@@ -63,6 +63,13 @@ Reject any implementation that violates these principles, regardless of feature 
 - **Actions**: Hidden by default, shown on hover (PC) / flick (mobile)
 - **Editing**: Inline Markdown live conversion (Typora-style)
 
+### Mobile
+
+- **Editor toolbar**: Shown only on touch (`@media (hover: none)`), docked above the keyboard via `visualViewport`. Full formatting set in grouped sections (undo/redo, heading-cycle + bold/italic/code, lists + indent, quote/code-block/rule); 44px touch targets, respects `safe-area-inset-bottom`
+- **Back gesture**: Left-edge swipe walks back through the view stack (`lib/swipe-back.ts`); per-view `enabled()` guard, inert in the editor. `isBackSwipe` is a pure, tested function
+- **Input zoom**: All text inputs are floored at 16px on coarse pointers so iOS never auto-zooms on focus
+- **Startup**: The Markdown engine (markdown-it + Shiki) is lazy-loaded — `MarkdownPreview` is behind a `lazy()`/`Suspense` boundary in `TimelineEntry`, keeping it off the landing-screen critical path
+
 ## Linked Notes (wikilinks)
 
 Notes link to each other Obsidian-style, but with zero capture friction:
