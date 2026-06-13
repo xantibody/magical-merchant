@@ -1,16 +1,6 @@
 import MarkdownIt from "markdown-it";
 import { getHighlighter } from "./highlighter";
 
-const md = MarkdownIt({
-  html: false,
-  linkify: true,
-  typographer: true,
-});
-
-export function renderMarkdownSync(source: string): string {
-  return md.render(source);
-}
-
 interface ShikiBlock {
   id: string;
   code: string;

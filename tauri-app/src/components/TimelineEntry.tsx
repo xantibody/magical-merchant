@@ -1,6 +1,5 @@
-import { Show, createMemo } from "solid-js";
+import { Show, Suspense, lazy, createMemo } from "solid-js";
 import Icon from "./Icon";
-import MarkdownPreview from "./MarkdownPreview";
 import {
   parseTimelineEntry,
   getBatteryIcon,
@@ -8,6 +7,9 @@ import {
   getOsLabel,
   hasLocation,
 } from "../lib/parse-timeline";
+
+// Markdown 描画は日付プレビュー時のみ。markdown-it/shiki を起動バンドルから外す
+const MarkdownPreview = lazy(() => import("./MarkdownPreview"));
 
 interface TimelineEntryProps {
   raw: string;
@@ -29,7 +31,9 @@ export default function TimelineEntry(props: TimelineEntryProps) {
           fallback={<span class="timeline-entry-text">{parsed().text}</span>}
         >
           <span class="timeline-entry-text">
-            <MarkdownPreview source={parsed().text} onWikilinkClick={props.onWikilinkClick} />
+            <Suspense fallback={parsed().text}>
+              <MarkdownPreview source={parsed().text} onWikilinkClick={props.onWikilinkClick} />
+            </Suspense>
           </span>
         </Show>
       </div>
