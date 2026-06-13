@@ -16,6 +16,7 @@ import MilkdownEditor from "../components/MilkdownEditor";
 import MarkdownPreview from "../components/MarkdownPreview";
 import MarkdownToolbar from "../components/MarkdownToolbar";
 import { getLocation } from "../lib/location";
+import { createSwipeBack } from "../lib/swipe-back";
 import ConfirmDialog from "../components/ConfirmDialog";
 import ActionBar from "../components/ActionBar";
 import Icon from "../components/Icon";
@@ -254,6 +255,9 @@ export default function Notes() {
       setViewMode("editor");
     }
   };
+
+  // 左端スワイプで戻る。エディタ中は文字選択と競合し戻り先もないので無効
+  createSwipeBack(goBack, () => viewMode() !== "editor");
 
   const formatTime = (time?: string) => {
     if (!time) return "";

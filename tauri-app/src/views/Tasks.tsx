@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "@solidjs/router";
 import { typedInvoke, type Project, type Task } from "../lib/commands";
 import { ROUTES } from "../lib/routes";
+import { createSwipeBack } from "../lib/swipe-back";
 import Icon from "../components/Icon";
 import ActionBar from "../components/ActionBar";
 import MilkdownEditor from "../components/MilkdownEditor";
@@ -222,6 +223,12 @@ export default function Tasks() {
     }
     navigateToList();
   };
+
+  // 左端スワイプで一覧へ戻る（一覧表示中は無効）
+  createSwipeBack(
+    () => void goBack(),
+    () => viewMode() !== "list",
+  );
 
   const confirmDelete = () => {
     setConfirmOpen(true);

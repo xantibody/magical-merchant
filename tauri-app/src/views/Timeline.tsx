@@ -6,6 +6,7 @@ import Icon from "../components/Icon";
 import TimelineEntry from "../components/TimelineEntry";
 import { getLocation } from "../lib/location";
 import { ROUTES } from "../lib/routes";
+import { createSwipeBack } from "../lib/swipe-back";
 
 type ViewMode = "input" | "list" | "preview";
 
@@ -81,6 +82,9 @@ export default function Timeline() {
       setViewMode("input");
     }
   };
+
+  // 左端スワイプで戻る（入力画面では戻り先がないので無効）
+  createSwipeBack(goBack, () => viewMode() !== "input");
 
   const navigate = useNavigate();
   const [linkError, setLinkError] = createSignal("");
